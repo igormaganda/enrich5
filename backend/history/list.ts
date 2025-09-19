@@ -4,7 +4,7 @@ import type { GetHistoryRequest, GetHistoryResponse, JobHistoryEntry } from "./t
 
 // Retrieves job history with optional filtering
 export const getHistory = api<GetHistoryRequest, GetHistoryResponse>(
-  { expose: true, method: "GET", path: "/" },
+  { expose: true, method: "GET", path: "/history" },
   async (req) => {
     const limit = req.limit || 50;
     const offset = req.offset || 0;
@@ -65,41 +65,6 @@ export const getHistory = api<GetHistoryRequest, GetHistoryResponse>(
     return {
       jobs,
       total: totalResult?.count || 0
-    };
-  }
-);
-
-export interface JobStatusRequest {
-  jobId: string;
-}
-
-export interface JobStatusResponse {
-  jobId: string;
-  status: string;
-  totalRecords: number;
-  processedRecords: number;
-  errorMessage: string | null;
-}
-
-export const getJobStatus = api<JobStatusRequest, JobStatusResponse>(
-  { expose: true, method: "POST", path: "/status" },
-  async ({ jobId }) => {
-    const job = await historyDB.queryRow`
-      SELECT job_id, status, total_records, records_processed, error_message
-      FROM job_history
-      WHERE job_id = ${jobId}
-    `;
-
-    if (!job) {
-      throw new Error("Job not found");
-    }
-
-    return {
-      jobId: job.job_id,
-      status: job.status,
-      totalRecords: job.total_records,
-      processedRecords: job.records_processed,
-      errorMessage: job.error_message,
     };
   }
 );
