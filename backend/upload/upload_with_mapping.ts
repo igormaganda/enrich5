@@ -111,7 +111,15 @@ function convertValue(value: string, dataType: string): any {
 
   switch (dataType) {
     case "string":
-      return trimmedValue;
+      // Ensure string values don't cause serialization issues
+      // Remove null bytes and control characters
+      const sanitized = trimmedValue.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      if (sanitized.length === 0) {
+        return null;
+      }
+      // Ensure proper UTF-8 encoding and limit length
+      const stringValue = Buffer.from(sanitized, 'utf8').toString('utf8').substring(0, 500);
+      return stringValue || null;
       
     case "integer":
       // More robust integer parsing to handle serialization errors
@@ -224,11 +232,11 @@ function parseDateTime(dateTimeStr: string): string | null {
 }
 
 function generateHexacleHash(row: any): string {
-  // Concatenation: numéro de rue + adresse + ville + code postal
+  // Concatenation: adresse + ville + code postal
   const components = [
-    row.address || '',
-    row.city || '',
-    row.postal_code || ''
+    row.adresse || '',
+    row.ville || '',
+    row.code_postal || ''
   ];
   
   return components
@@ -240,7 +248,7 @@ function generateHexacleHash(row: any): string {
 function validateAndCleanRowData(row: any): any {
   const cleaned: any = {};
   
-  // Helper function to validate and clean each field
+  // Fonction helper pour valider et nettoyer chaque champ
   const cleanField = (fieldName: string, value: any, validator?: (val: any) => any) => {
     if (value === undefined || value === null || value === '') {
       return null;
@@ -248,126 +256,96 @@ function validateAndCleanRowData(row: any): any {
     
     if (validator) {
       try {
-        return validator(value);
+        const result = validator(value);
+        // Additional check to ensure the result is not problematic
+        if (result === undefined) {
+          return null;
+        }
+        return result;
       } catch (error) {
-        console.warn(`Validation failed for ${fieldName}: ${value}, using null`);
+        console.warn(`Validation failed for ${fieldName}: ${JSON.stringify(value)}, using null:`, error);
         return null;
       }
     }
     
-    // Default string truncation for VARCHAR fields to prevent overflow
-    if (typeof value === 'string' && value.length > 255) {
-      console.warn(`Truncating ${fieldName} from ${value.length} to 255 characters`);
-      return value.substring(0, 255);
+    // Default string cleaning for fields without custom validator
+    if (typeof value === 'string') {
+      const sanitized = value.trim().replace(/[ --]/g, '');
+      return sanitized.length > 0 ? sanitized : null;
     }
     
     return value;
   };
   
-  // Validate and clean each field
-  cleaned.email = cleanField('email', row.email);
-  cleaned.mobile_phone = cleanField('mobile_phone', row.mobile_phone);
-  cleaned.landline_phone = cleanField('landline_phone', row.landline_phone);
-  cleaned.civility = cleanField('civility', row.civility);
-  cleaned.last_name = cleanField('last_name', row.last_name);
-  cleaned.first_name = cleanField('first_name', row.first_name);
-  cleaned.address = cleanField('address', row.address);
-  cleaned.address_complement = cleanField('address_complement', row.address_complement);
-  cleaned.postal_code = cleanField('postal_code', row.postal_code);
-  cleaned.city = cleanField('city', row.city);
-  
-  // Special validation for department (parameter 11) - ensure no overflow
-  cleaned.department = cleanField('department', row.department, (val) => {
-    if (val === undefined || val === null || val === '') {
+  // Fonction de nettoyage spéciale pour les chaînes avec longueur limitée
+  const cleanStringField = (maxLength: number) => (val: any) => {
+    if (val === null || val === undefined) {
       return null;
     }
     const str = String(val).trim();
-    // Truncate to 255 characters to prevent PostgreSQL VARCHAR(255) overflow
-    if (str.length > 255) {
-      return str.substring(0, 255);
+    // Remove null bytes and control characters that can cause serialization issues
+    const sanitized = str.replace(/[ --]/g, '');
+    if (sanitized.length === 0) {
+      return null;
     }
-    return str;
-  });
+    // Ensure proper UTF-8 encoding and limit length
+    const utf8Limited = Buffer.from(sanitized, 'utf8').toString('utf8').substring(0, maxLength);
+    return utf8Limited || null;
+  };
+
+  // Valider et nettoyer chaque champ avec des limites appropriées
+  // Identité personnelle
+  cleaned.civilite = cleanField('civilite', row.civilite, cleanStringField(255));
+  cleaned.prenom = cleanField('prenom', row.prenom, cleanStringField(255));
+  cleaned.nom = cleanField('nom', row.nom, cleanStringField(255));
+  cleaned.date_naissance = cleanField('date_naissance', row.date_naissance);
   
-  cleaned.date_of_birth = cleanField('date_of_birth', row.date_of_birth);
-  
-  // Special validation for age (parameter 13) - ensure PostgreSQL INTEGER range
+  // Validation spéciale pour age
   cleaned.age = cleanField('age', row.age, (val) => {
-    if (val === undefined || val === null || val === '') {
+    if (val === null || val === undefined || val === '') {
       return null;
     }
-    const numVal = Number(val);
-    if (isNaN(numVal)) {
+    const strVal = String(val).trim();
+    const numericStr = strVal.replace(/[^0-9.-]/g, '');
+    if (numericStr === '' || numericStr === '.' || numericStr === '-') {
       return null;
     }
-    const intVal = Math.floor(numVal);
-    // PostgreSQL INTEGER range: -2,147,483,648 to 2,147,483,647
-    // But for age, we use reasonable bounds
-    if (intVal < 0 || intVal > 150 || intVal > 2147483647 || intVal < -2147483648) {
+    const numVal = parseFloat(numericStr);
+    if (isNaN(numVal) || !isFinite(numVal)) {
+      return null;
+    }
+    const intVal = Math.floor(Math.abs(numVal));
+    if (intVal < 0 || intVal > 150) {
       return null;
     }
     return intVal;
   });
   
-  cleaned.date_optin = cleanField('date_optin', row.date_optin);
-  cleaned.optin_sms = cleanField('optin_sms', row.optin_sms);
-  cleaned.optout_url = cleanField('optout_url', row.optout_url);
-  cleaned.optout_contact = cleanField('optout_contact', row.optout_contact);
-  cleaned.email_quality = cleanField('email_quality', row.email_quality);
-  cleaned.address_quality = cleanField('address_quality', row.address_quality);
-  cleaned.housing_status = cleanField('housing_status', row.housing_status);
-  cleaned.housing_type = cleanField('housing_type', row.housing_type);
-  cleaned.children_family = cleanField('children_family', row.children_family);
-  cleaned.profession = cleanField('profession', row.profession);
-  cleaned.ip_collect = cleanField('ip_collect', row.ip_collect);
-  cleaned.collect_url = cleanField('collect_url', row.collect_url);
-  cleaned.score_bloctel = cleanField('score_bloctel', row.score_bloctel);
-  cleaned.iris = cleanField('iris', row.iris);
-  cleaned.urban_unit = cleanField('urban_unit', row.urban_unit);
-  cleaned.municipality_type = cleanField('municipality_type', row.municipality_type);
-  cleaned.moving = cleanField('moving', row.moving);
-  cleaned.robinson = cleanField('robinson', row.robinson);
-  cleaned.last_active_date = cleanField('last_active_date', row.last_active_date);
-  cleaned.last_click_date = cleanField('last_click_date', row.last_click_date);
-  cleaned.interests = cleanField('interests', row.interests);
-  cleaned.email_md5 = cleanField('email_md5', row.email_md5);
-  cleaned.email_sha256 = cleanField('email_sha256', row.email_sha256);
-  cleaned.mobile_md5 = cleanField('mobile_md5', row.mobile_md5);
-  cleaned.mobile_clean = cleanField('mobile_clean', row.mobile_clean);
-  cleaned.region = cleanField('region', row.region);
-  cleaned.date_optin_sms = cleanField('date_optin_sms', row.date_optin_sms);
+  cleaned.profession = cleanField('profession', row.profession, cleanStringField(255));
   
-  // Validation for children_count
-  cleaned.children_count = cleanField('children_count', row.children_count, (val) => {
+  // Adresse personnelle
+  cleaned.adresse = cleanField('adresse', row.adresse, cleanStringField(255));
+  cleaned.adresse_complement = cleanField('adresse_complement', row.adresse_complement, cleanStringField(255));
+  cleaned.code_postal = cleanField('code_postal', row.code_postal, cleanStringField(255));
+  cleaned.ville = cleanField('ville', row.ville, cleanStringField(255));
+  cleaned.departement = cleanField('departement', row.departement, cleanStringField(255));
+  
+  // Informations personnelles basiques
+  cleaned.email = cleanField('email', row.email, cleanStringField(255));
+  cleaned.mobile = cleanField('mobile', row.mobile, cleanStringField(255));
+  cleaned.phone = cleanField('phone', row.phone, cleanStringField(255));
+  
+  // Famille
+  cleaned.nb_enfants = cleanField('nb_enfants', row.nb_enfants, (val) => {
     const numVal = Number(val);
     if (isNaN(numVal)) return null;
     const intVal = Math.floor(numVal);
     return (intVal >= 0 && intVal <= 20) ? intVal : null;
   });
   
-  cleaned.child1_birth_date = cleanField('child1_birth_date', row.child1_birth_date);
-  cleaned.child2_birth_date = cleanField('child2_birth_date', row.child2_birth_date);
-  cleaned.child3_birth_date = cleanField('child3_birth_date', row.child3_birth_date);
-  cleaned.income = cleanField('income', row.income);
-  cleaned.second_home = cleanField('second_home', row.second_home);
-  cleaned.pet_owner = cleanField('pet_owner', row.pet_owner);
-  cleaned.pet_type = cleanField('pet_type', row.pet_type);
-  cleaned.hexacle = cleanField('hexacle', row.hexacle);
-  cleaned.mobile_sha256 = cleanField('mobile_sha256', row.mobile_sha256);
-  cleaned.landline_md5 = cleanField('landline_md5', row.landline_md5);
-  cleaned.landline_sha256 = cleanField('landline_sha256', row.landline_sha256);
-  cleaned.optin_email = cleanField('optin_email', row.optin_email);
-  cleaned.hexavia = cleanField('hexavia', row.hexavia);
-  cleaned.roudis = cleanField('roudis', row.roudis);
-  cleaned.last_consent_date = cleanField('last_consent_date', row.last_consent_date);
-  cleaned.best_date = cleanField('best_date', row.best_date);
-  cleaned.score_email = cleanField('score_email', row.score_email);
-  cleaned.score_usage = cleanField('score_usage', row.score_usage);
-  cleaned.optin_tmk = cleanField('optin_tmk', row.optin_tmk);
-  cleaned.optin_postal = cleanField('optin_postal', row.optin_postal);
-  cleaned.source_files = cleanField('source_files', row.source_files);
-  cleaned.best_priority = cleanField('best_priority', row.best_priority);
-  cleaned.hexacle_hash = cleanField('hexacle_hash', row.hexacle_hash);
+  cleaned.enfant1_date_naissance = cleanField('enfant1_date_naissance', row.enfant1_date_naissance);
+  cleaned.enfant2_date_naissance = cleanField('enfant2_date_naissance', row.enfant2_date_naissance);
+  cleaned.enfant3_date_naissance = cleanField('enfant3_date_naissance', row.enfant3_date_naissance);
   
   return cleaned;
 }
@@ -380,44 +358,35 @@ async function insertContactBatchWithMapping(batch: any[]): Promise<string[]> {
   for (let i = 0; i < batch.length; i++) {
     const row = batch[i];
     try {
-      // Data is already processed by mapRowToDatabase, no need for additional cleaning
-      const cleanedRow = row;
+      const cleanedRow = validateAndCleanRowData(row);
       
       await db.exec`
         INSERT INTO contacts (
-          email, mobile_phone, landline_phone, civility, last_name, first_name, address, 
-          address_complement, postal_code, city, department, date_of_birth, age, date_optin, 
-          optin_sms, optout_url, optout_contact, email_quality, address_quality, housing_status, 
-          housing_type, children_family, profession, ip_collect, collect_url, score_bloctel, 
-          iris, urban_unit, municipality_type, moving, robinson, last_active_date, 
-          last_click_date, interests, email_md5, email_sha256, mobile_md5, mobile_clean, 
-          region, date_optin_sms, children_count, child1_birth_date, child2_birth_date, 
-          child3_birth_date, income, second_home, pet_owner, pet_type, hexacle, mobile_sha256, 
-          landline_md5, landline_sha256, optin_email, hexavia, roudis, last_consent_date, 
-          best_date, score_email, score_usage, optin_tmk, optin_postal, source_files, best_priority, hexacle_hash
+          civilite, nom, prenom, date_naissance, age, profession,
+          adresse, adresse_complement, code_postal, ville, departement,
+          email, mobile, phone, nb_enfants, enfant1_date_naissance,
+          enfant2_date_naissance, enfant3_date_naissance, hexacle_hash
         )
         VALUES (
-          ${cleanedRow.email}, ${cleanedRow.mobile_phone}, ${cleanedRow.landline_phone}, 
-          ${cleanedRow.civility}, ${cleanedRow.last_name}, ${cleanedRow.first_name}, 
-          ${cleanedRow.address}, ${cleanedRow.address_complement}, ${cleanedRow.postal_code}, 
-          ${cleanedRow.city}, ${cleanedRow.department}, ${cleanedRow.date_of_birth}, 
-          ${cleanedRow.age}, ${cleanedRow.date_optin}, ${cleanedRow.optin_sms}, 
-          ${cleanedRow.optout_url}, ${cleanedRow.optout_contact}, ${cleanedRow.email_quality}, 
-          ${cleanedRow.address_quality}, ${cleanedRow.housing_status}, ${cleanedRow.housing_type}, 
-          ${cleanedRow.children_family}, ${cleanedRow.profession}, ${cleanedRow.ip_collect}, 
-          ${cleanedRow.collect_url}, ${cleanedRow.score_bloctel}, ${cleanedRow.iris}, 
-          ${cleanedRow.urban_unit}, ${cleanedRow.municipality_type}, ${cleanedRow.moving}, 
-          ${cleanedRow.robinson}, ${cleanedRow.last_active_date}, ${cleanedRow.last_click_date}, 
-          ${cleanedRow.interests}, ${cleanedRow.email_md5}, ${cleanedRow.email_sha256}, 
-          ${cleanedRow.mobile_md5}, ${cleanedRow.mobile_clean}, ${cleanedRow.region}, 
-          ${cleanedRow.date_optin_sms}, ${cleanedRow.children_count}, ${cleanedRow.child1_birth_date}, 
-          ${cleanedRow.child2_birth_date}, ${cleanedRow.child3_birth_date}, ${cleanedRow.income}, 
-          ${cleanedRow.second_home}, ${cleanedRow.pet_owner}, ${cleanedRow.pet_type}, 
-          ${cleanedRow.hexacle}, ${cleanedRow.mobile_sha256}, ${cleanedRow.landline_md5}, 
-          ${cleanedRow.landline_sha256}, ${cleanedRow.optin_email}, ${cleanedRow.hexavia}, 
-          ${cleanedRow.roudis}, ${cleanedRow.last_consent_date}, ${cleanedRow.best_date}, 
-          ${cleanedRow.score_email}, ${cleanedRow.score_usage}, ${cleanedRow.optin_tmk}, 
-          ${cleanedRow.optin_postal}, ${cleanedRow.source_files}, ${cleanedRow.best_priority}, ${cleanedRow.hexacle_hash}
+          ${cleanedRow.civilite},
+          ${cleanedRow.nom},
+          ${cleanedRow.prenom},
+          ${cleanedRow.date_naissance},
+          ${cleanedRow.age},
+          ${cleanedRow.profession},
+          ${cleanedRow.adresse},
+          ${cleanedRow.adresse_complement},
+          ${cleanedRow.code_postal},
+          ${cleanedRow.ville},
+          ${cleanedRow.departement},
+          ${cleanedRow.email},
+          ${cleanedRow.mobile},
+          ${cleanedRow.phone},
+          ${cleanedRow.nb_enfants},
+          ${cleanedRow.enfant1_date_naissance},
+          ${cleanedRow.enfant2_date_naissance},
+          ${cleanedRow.enfant3_date_naissance},
+          ${cleanedRow.hexacle_hash}
         )
       `;
     } catch (e: any) {

@@ -135,7 +135,7 @@ async function processBlacklistInBackground(
       });
       
       let batch: string[] = [];
-      const batchSize = 1000;
+      const batchSize = 500; // Réduire la taille des lots pour éviter les timeouts
       
       stream.pipe(parser)
         .on('data', async (row) => {
@@ -146,11 +146,11 @@ async function processBlacklistInBackground(
             let phoneNumber: string;
             
             if (hasHeaders) {
-              // Si headers, chercher dans les colonnes possibles
-              phoneNumber = row.phone || row.mobile || row.numero || row.telephone || '';
+              // Si headers, chercher dans les colonnes possibles (case sensitive)
+              phoneNumber = row['NUMR_TELP'] || row['numr_telp'] || row.phone || row.mobile || row.numero || row.telephone || row.NUMERO || '';
             } else {
               // Sans headers, le numéro devrait être dans la première colonne
-              phoneNumber = row[0] || '';
+              phoneNumber = Array.isArray(row) ? row[0] : Object.values(row)[0] || '';
             }
             
             // Nettoyer le numéro
@@ -215,7 +215,7 @@ async function detectBlacklistHeaders(filePath: string): Promise<boolean> {
     stream.on('data', (chunk) => {
       if (!hasReadFirstLine) {
         firstLine += chunk.toString();
-        const lineEnd = firstLine.indexOf('\\n');
+        const lineEnd = firstLine.indexOf('\n');
         if (lineEnd !== -1) {
           firstLine = firstLine.substring(0, lineEnd);
           hasReadFirstLine = true;
@@ -223,11 +223,16 @@ async function detectBlacklistHeaders(filePath: string): Promise<boolean> {
           
           // Vérifier si la première ligne contient des headers
           const firstLineClean = firstLine.trim().toLowerCase();
-          const hasHeaders = firstLineClean.includes('phone') || 
+          const firstLineUpper = firstLine.trim().toUpperCase();
+          
+          // Pour blacklist mobile, rechercher les termes indicateurs d'headers
+          const hasHeaders = firstLineUpper.includes('NUMR_TELP') || 
+                           firstLineClean.includes('phone') || 
                            firstLineClean.includes('mobile') || 
                            firstLineClean.includes('numero') ||
                            firstLineClean.includes('telephone') ||
-                           (firstLineClean.split(';').length === 1 && !/^\\d+$/.test(firstLineClean.replace(/[^0-9]/g, '')));
+                           // Si la ligne contient que des chiffres, ce n'est pas un header
+                           (firstLineClean.replace(/[^0-9]/g, '').length !== firstLineClean.replace(/[^0-9;,\s]/g, '').length);
           
           resolve(hasHeaders);
         }
@@ -263,15 +268,33 @@ function cleanPhoneNumber(phone: string): string {
 }
 
 async function insertBlacklistBatch(phoneNumbers: string[], sourceFile: string): Promise<void> {
-  for (const phoneNumber of phoneNumbers) {
-    try {
+  if (phoneNumbers.length === 0) return;
+  
+  try {
+    // Traiter chaque numéro individuellement pour plus de stabilité
+    for (const phoneNumber of phoneNumbers) {
       await db.exec`
         INSERT INTO mobile_blacklist (phone_number, source_file)
         VALUES (${phoneNumber}, ${sourceFile})
         ON CONFLICT (phone_number) DO NOTHING
       `;
-    } catch (error) {
-      console.error(`Error inserting blacklist number ${phoneNumber}:`, error);
+    }
+    
+    console.log(`Inserted batch of ${phoneNumbers.length} blacklist numbers`);
+  } catch (error) {
+    console.error(`Error inserting blacklist batch:`, error);
+    
+    // En cas d'erreur sur le lot, essayer individuellement sans transaction
+    for (const phoneNumber of phoneNumbers) {
+      try {
+        await db.exec`
+          INSERT INTO mobile_blacklist (phone_number, source_file)
+          VALUES (${phoneNumber}, ${sourceFile})
+          ON CONFLICT (phone_number) DO NOTHING
+        `;
+      } catch (individualError) {
+        console.error(`Error inserting individual blacklist number ${phoneNumber}:`, individualError);
+      }
     }
   }
 }

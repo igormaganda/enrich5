@@ -1,3 +1,3 @@
-import { SQLDatabase } from 'encore.dev/storage/sqldb';
+import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-export const enrichmentDB = SQLDatabase.named("db");
+export const enrichmentDB = new SQLDatabase("db");

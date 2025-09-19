@@ -131,21 +131,3 @@ export const getEnrichmentJobStatus = api<{ jobId: string }, JobStatusResponse>(
     }
   }
 );
-
-export const listEnrichmentJobs = api<void, { jobs: EnrichmentJob[] }>(
-  { expose: true, method: "GET", path: "/enrichment/jobs" },
-  async () => {
-    const jobsResult = await db.query<EnrichmentJob>`
-      SELECT * FROM enrichment_jobs 
-      ORDER BY created_at DESC 
-      LIMIT 50
-    `;
-    
-    const jobs: EnrichmentJob[] = [];
-    for await (const job of jobsResult) {
-      jobs.push(job);
-    }
-    
-    return { jobs };
-  }
-);
