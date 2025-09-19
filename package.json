@@ -1,0 +1,10 @@
+{
+  "name": "automated-data-enrichment-platform-d32h10k82vjs5hdt4010",
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "bun",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

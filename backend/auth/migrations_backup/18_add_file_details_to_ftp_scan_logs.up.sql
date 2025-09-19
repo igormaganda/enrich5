@@ -1,0 +1,1 @@
+ALTER TABLE ftp_scan_logs ADD COLUMN file_details JSONB DEFAULT '[]'::jsonb;

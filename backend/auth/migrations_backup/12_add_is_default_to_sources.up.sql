@@ -1,0 +1,1 @@
+ALTER TABLE enrichment_sources ADD COLUMN is_default BOOLEAN NOT NULL DEFAULT FALSE;
