@@ -381,12 +381,14 @@ async function detectCSVHeaders(filePath: string): Promise<boolean> {
 async function insertTempBatch(batch: any[]): Promise<void> {
   for (const record of batch) {
     try {
+      const { tempHexacleHash, tempsHexacleHash } = computeTempHashes(record);
+
       await db.exec`
         INSERT INTO temp_reference_data (
-          job_id, file_name, temp_hexacle_hash, hexacle_original, numero, voie, ville, cod_post, cod_insee, raw_data
+          job_id, file_name, temp_hexacle_hash, temps_hexacle_hash, hexacle_original, numero, voie, ville, cod_post, cod_insee, raw_data
         )
         VALUES (
-          ${record.job_id}, ${record.file_name}, '', ${record.hexacle_original}, 
+          ${record.job_id}, ${record.file_name}, ${tempHexacleHash}, ${tempsHexacleHash}, ${record.hexacle_original},
           ${record.numero}, ${record.voie}, ${record.ville}, ${record.cod_post}, ${record.cod_insee}, ${record.raw_data}::jsonb
         )
       `;
@@ -396,23 +398,64 @@ async function insertTempBatch(batch: any[]): Promise<void> {
   }
 }
 
+function computeTempHashes(record: any): { tempHexacleHash: string; tempsHexacleHash: string } {
+  const components = [
+    record.numero ?? '',
+    record.voie ?? '',
+    record.ville ?? '',
+    record.cod_post ?? ''
+  ].map(value => String(value ?? ''));
+
+  const combined = components.join('');
+  const tempHexacleHash = sanitizeHexacleHash(combined);
+
+  const timestamp = new Date().toISOString();
+  const tempsHexacleHash = sanitizeHexacleHash(`${timestamp}${combined}`);
+
+  return {
+    tempHexacleHash,
+    tempsHexacleHash
+  };
+}
+
+function sanitizeHexacleHash(value: string): string {
+  if (!value) {
+    return '';
+  }
+
+  const normalized = value
+    .toString()
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[-.:]/g, '')
+    .toUpperCase();
+
+  return normalized.substring(0, 255);
+}
+
 async function generateTempHexacleHashes(jobId: string): Promise<void> {
   console.log(`Generating temp_hexacle_hash for job ${jobId}`);
-  
+
   // Formation correcte du hexacle_hash: numero + voie + ville + cod_post
   await db.exec`
     UPDATE temp_reference_data 
     SET temp_hexacle_hash = COALESCE(numero, '') || COALESCE(voie, '') || COALESCE(ville, '') || COALESCE(cod_post, '')
     WHERE job_id = ${jobId} AND temp_hexacle_hash = ''
   `;
-  
+
   // Nettoyer et normaliser les hexacle_hash (supprimer espaces, tirets, mettre en majuscules)
   await db.exec`
-    UPDATE temp_reference_data 
+    UPDATE temp_reference_data
     SET temp_hexacle_hash = UPPER(TRIM(REPLACE(REPLACE(REPLACE(temp_hexacle_hash, ' ', ''), '-', ''), '.', '')))
     WHERE job_id = ${jobId}
   `;
-  
+
+  await db.exec`
+    UPDATE temp_reference_data
+    SET temps_hexacle_hash = UPPER(TRIM(REPLACE(REPLACE(REPLACE(temps_hexacle_hash, ' ', ''), '-', ''), '.', '')))
+    WHERE job_id = ${jobId}
+  `;
+
   console.log(`Temp hexacle hashes generated for job ${jobId}`);
 }
 
@@ -421,8 +464,8 @@ async function performEnrichment(jobId: string): Promise<{ processed: number, ma
   
   // Récupérer tous les enregistrements temporaires
   const tempRecordsResult = await db.query`
-    SELECT id, temp_hexacle_hash, raw_data
-    FROM temp_reference_data 
+    SELECT id, temp_hexacle_hash, temps_hexacle_hash, raw_data
+    FROM temp_reference_data
     WHERE job_id = ${jobId} AND temp_hexacle_hash != ''
   `;
   
@@ -449,10 +492,10 @@ async function performEnrichment(jobId: string): Promise<{ processed: number, ma
       // Insérer le résultat d'enrichissement
       await db.exec`
         INSERT INTO enrichment_results (
-          job_id, temp_hexacle_hash, found_match, enriched_data, reference_data
+          job_id, temp_hexacle_hash, temps_hexacle_hash, found_match, enriched_data, reference_data
         )
         VALUES (
-          ${jobId}, ${tempRecord.temp_hexacle_hash}, ${foundMatch},
+          ${jobId}, ${tempRecord.temp_hexacle_hash}, ${tempRecord.temps_hexacle_hash}, ${foundMatch},
           ${contactMatch ? JSON.stringify(contactMatch) : null}::jsonb,
           ${tempRecord.raw_data}::jsonb
         )
@@ -537,17 +580,17 @@ async function generateFinalResultZip(jobId: string, originalFileName: string): 
   
   // Écrire l'en-tête CSV
   const headers = [
-    'temp_hexacle_hash', 'found_match', 'original_hexacle', 'original_numero', 'original_voie', 
+    'temp_hexacle_hash', 'temps_hexacle_hash', 'found_match', 'original_hexacle', 'original_numero', 'original_voie',
     'original_ville', 'original_cod_post', 'original_cod_insee',
     'enriched_first_name', 'enriched_last_name', 'enriched_email', 'enriched_mobile_phone',
     'enriched_landline_phone', 'enriched_address', 'enriched_city', 'enriched_postal_code'
   ];
   writeStream.write(headers.join(',') + '\\n');
-  
+
   // Récupérer et écrire les résultats
   const resultsQuery = await db.query`
-    SELECT temp_hexacle_hash, found_match, enriched_data, reference_data
-    FROM enrichment_results 
+    SELECT temp_hexacle_hash, temps_hexacle_hash, found_match, enriched_data, reference_data
+    FROM enrichment_results
     WHERE job_id = ${jobId}
     ORDER BY temp_hexacle_hash
   `;
@@ -563,6 +606,7 @@ async function generateFinalResultZip(jobId: string, originalFileName: string): 
     
     const row = [
       result.temp_hexacle_hash,
+      result.temps_hexacle_hash,
       result.found_match,
       refData.hexacle || '',
       refData.numero || '',
