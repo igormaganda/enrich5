@@ -1,0 +1,25 @@
+-- Align contacts table columns with the fixed CSV header
+ALTER TABLE contacts RENAME COLUMN first_name TO prenom;
+ALTER TABLE contacts RENAME COLUMN last_name TO nom;
+ALTER TABLE contacts RENAME COLUMN landline_phone TO phone;
+ALTER TABLE contacts RENAME COLUMN mobile_phone TO mobile;
+ALTER TABLE contacts RENAME COLUMN civility TO civilite;
+ALTER TABLE contacts RENAME COLUMN address TO adresse;
+ALTER TABLE contacts RENAME COLUMN address_complement TO adresse_complement;
+ALTER TABLE contacts RENAME COLUMN postal_code TO code_postal;
+ALTER TABLE contacts RENAME COLUMN city TO ville;
+ALTER TABLE contacts RENAME COLUMN department TO departement;
+ALTER TABLE contacts RENAME COLUMN date_of_birth TO date_naissance;
+ALTER TABLE contacts RENAME COLUMN children_count TO nb_enfants;
+ALTER TABLE contacts RENAME COLUMN child1_birth_date TO enfant1_date_naissance;
+ALTER TABLE contacts RENAME COLUMN child2_birth_date TO enfant2_date_naissance;
+ALTER TABLE contacts RENAME COLUMN child3_birth_date TO enfant3_date_naissance;
+ALTER TABLE contacts RENAME COLUMN income TO revenu;
+ALTER TABLE contacts RENAME COLUMN moving TO demenage;
+ALTER TABLE contacts RENAME COLUMN interests TO centre_interet;
+ALTER TABLE contacts RENAME COLUMN landline_md5 TO land_phone_md5;
+ALTER TABLE contacts RENAME COLUMN landline_sha256 TO land_phone_sha256;
+ALTER TABLE contacts RENAME COLUMN last_active_date TO date_last_active;
+ALTER TABLE contacts RENAME COLUMN last_click_date TO date_last_click;
+ALTER TABLE contacts RENAME COLUMN last_consent_date TO date_last_consent;
+ALTER TABLE contacts RENAME COLUMN best_date TO date_best;
