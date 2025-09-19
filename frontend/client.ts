@@ -9,91 +9,90 @@ import type { CookieWithOptions } from "encore.dev/api";
 /**
  * BaseURL is the base URL for calling the Encore application's API.
  */
-export type BaseURL = string;
+export type BaseURL = string
 
-export const Local: BaseURL = "http://localhost:4000";
+export const Local: BaseURL = "http://localhost:4000"
 
 /**
  * Environment returns a BaseURL for calling the cloud environment with the given name.
  */
 export function Environment(name: string): BaseURL {
-  return `https://${name}-.encr.app`;
+    return `https://${name}-.encr.app`
 }
 
 /**
  * PreviewEnv returns a BaseURL for calling the preview environment with the given PR number.
  */
 export function PreviewEnv(pr: number | string): BaseURL {
-  return Environment(`pr${pr}`);
+    return Environment(`pr${pr}`)
 }
 
-const BROWSER = typeof globalThis === "object" && "window" in globalThis;
+const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 
 /**
  * Client is an API client for the  Encore application.
  */
 export class Client {
-  public readonly archive_enrichment: archive_enrichment.ServiceClient;
-  public readonly auth: auth.ServiceClient;
-  public readonly download: download.ServiceClient;
-  public readonly enrichment: enrichment.ServiceClient;
-  public readonly ftp: ftp.ServiceClient;
-  public readonly history: history.ServiceClient;
-  public readonly notification: notification.ServiceClient;
-  public readonly settings: settings.ServiceClient;
-  public readonly upload: upload.ServiceClient;
-  private readonly options: ClientOptions;
-  private readonly target: string;
+    public readonly archive_enrichment: archive_enrichment.ServiceClient
+    public readonly auth: auth.ServiceClient
+    public readonly download: download.ServiceClient
+    public readonly enrichment: enrichment.ServiceClient
+    public readonly ftp: ftp.ServiceClient
+    public readonly history: history.ServiceClient
+    public readonly notification: notification.ServiceClient
+    public readonly settings: settings.ServiceClient
+    public readonly upload: upload.ServiceClient
+    private readonly options: ClientOptions
+    private readonly target: string
 
-  /**
-   * Creates a Client for calling the public and authenticated APIs of your Encore application.
-   *
-   * @param target  The target which the client should be configured to use. See Local and Environment for options.
-   * @param options Options for the client
-   */
-  constructor(target: BaseURL, options?: ClientOptions) {
-    this.target = target;
-    this.options = options ?? {};
-    const base = new BaseClient(this.target, this.options);
-    this.archive_enrichment = new archive_enrichment.ServiceClient(base);
-    this.auth = new auth.ServiceClient(base);
-    this.download = new download.ServiceClient(base);
-    this.enrichment = new enrichment.ServiceClient(base);
-    this.ftp = new ftp.ServiceClient(base);
-    this.history = new history.ServiceClient(base);
-    this.notification = new notification.ServiceClient(base);
-    this.settings = new settings.ServiceClient(base);
-    this.upload = new upload.ServiceClient(base);
-  }
 
-  /**
-   * Creates a new Encore client with the given client options set.
-   *
-   * @param options Client options to set. They are merged with existing options.
-   **/
-  public with(options: ClientOptions): Client {
-    return new Client(this.target, {
-      ...this.options,
-      ...options,
-    });
-  }
+    /**
+     * Creates a Client for calling the public and authenticated APIs of your Encore application.
+     *
+     * @param target  The target which the client should be configured to use. See Local and Environment for options.
+     * @param options Options for the client
+     */
+    constructor(target: BaseURL, options?: ClientOptions) {
+        this.target = target
+        this.options = options ?? {}
+        const base = new BaseClient(this.target, this.options)
+        this.archive_enrichment = new archive_enrichment.ServiceClient(base)
+        this.auth = new auth.ServiceClient(base)
+        this.download = new download.ServiceClient(base)
+        this.enrichment = new enrichment.ServiceClient(base)
+        this.ftp = new ftp.ServiceClient(base)
+        this.history = new history.ServiceClient(base)
+        this.notification = new notification.ServiceClient(base)
+        this.settings = new settings.ServiceClient(base)
+        this.upload = new upload.ServiceClient(base)
+    }
+
+    /**
+     * Creates a new Encore client with the given client options set.
+     *
+     * @param options Client options to set. They are merged with existing options.
+     **/
+    public with(options: ClientOptions): Client {
+        return new Client(this.target, {
+            ...this.options,
+            ...options,
+        })
+    }
 }
 
 /**
  * ClientOptions allows you to override any default behaviour within the generated Encore client.
  */
 export interface ClientOptions {
-  /**
-   * By default the client will use the inbuilt fetch function for making the API requests.
-   * however you can override it with your own implementation here if you want to run custom
-   * code on each API request made or response received.
-   */
-  fetcher?: Fetcher;
+    /**
+     * By default the client will use the inbuilt fetch function for making the API requests.
+     * however you can override it with your own implementation here if you want to run custom
+     * code on each API request made or response received.
+     */
+    fetcher?: Fetcher
 
-  /** Default RequestInit to be used for the client */
-  requestInit?: Omit<RequestInit, "headers"> & {
-    headers?: Record<string, string>;
-  };
+    /** Default RequestInit to be used for the client */
+    requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
 }
 
 /**
@@ -101,285 +100,188 @@ export interface ClientOptions {
  */
 import { downloadEnrichedArchive as api_archive_enrichment_download_downloadEnrichedArchive } from "~backend/archive_enrichment/download";
 import {
-  getArchiveStatus as api_archive_enrichment_status_getArchiveStatus,
-  listArchiveJobs as api_archive_enrichment_status_listArchiveJobs,
+    getArchiveStatus as api_archive_enrichment_status_getArchiveStatus,
+    listArchiveJobs as api_archive_enrichment_status_listArchiveJobs
 } from "~backend/archive_enrichment/status";
 import { uploadArchive as api_archive_enrichment_upload_archive_uploadArchive } from "~backend/archive_enrichment/upload_archive";
 
 export namespace archive_enrichment {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.downloadEnrichedArchive = this.downloadEnrichedArchive.bind(this);
-      this.getArchiveStatus = this.getArchiveStatus.bind(this);
-      this.listArchiveJobs = this.listArchiveJobs.bind(this);
-      this.uploadArchive = this.uploadArchive.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.downloadEnrichedArchive = this.downloadEnrichedArchive.bind(this)
+            this.getArchiveStatus = this.getArchiveStatus.bind(this)
+            this.listArchiveJobs = this.listArchiveJobs.bind(this)
+            this.uploadArchive = this.uploadArchive.bind(this)
+        }
+
+        public async downloadEnrichedArchive(params: RequestType<typeof api_archive_enrichment_download_downloadEnrichedArchive>): Promise<ResponseType<typeof api_archive_enrichment_download_downloadEnrichedArchive>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: String(params.userId),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/archive/download/${encodeURIComponent(params.archiveJobId)}`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_archive_enrichment_download_downloadEnrichedArchive>
+        }
+
+        public async getArchiveStatus(params: { archiveJobId: string }): Promise<ResponseType<typeof api_archive_enrichment_status_getArchiveStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/archive/status/${encodeURIComponent(params.archiveJobId)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_archive_enrichment_status_getArchiveStatus>
+        }
+
+        public async listArchiveJobs(params: RequestType<typeof api_archive_enrichment_status_listArchiveJobs>): Promise<ResponseType<typeof api_archive_enrichment_status_listArchiveJobs>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+                userId: String(params.userId),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/archive/jobs`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_archive_enrichment_status_listArchiveJobs>
+        }
+
+        public async uploadArchive(params: RequestType<typeof api_archive_enrichment_upload_archive_uploadArchive>): Promise<ResponseType<typeof api_archive_enrichment_upload_archive_uploadArchive>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/archive/upload`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_archive_enrichment_upload_archive_uploadArchive>
+        }
     }
-
-    public async downloadEnrichedArchive(
-      params: RequestType<
-        typeof api_archive_enrichment_download_downloadEnrichedArchive
-      >
-    ): Promise<
-      ResponseType<
-        typeof api_archive_enrichment_download_downloadEnrichedArchive
-      >
-    > {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        userId: String(params.userId),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/archive/download/${encodeURIComponent(params.archiveJobId)}`,
-        { query, method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_archive_enrichment_download_downloadEnrichedArchive
-      >;
-    }
-
-    public async getArchiveStatus(params: {
-      archiveJobId: string;
-    }): Promise<
-      ResponseType<typeof api_archive_enrichment_status_getArchiveStatus>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/archive/status/${encodeURIComponent(params.archiveJobId)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_archive_enrichment_status_getArchiveStatus
-      >;
-    }
-
-    public async listArchiveJobs(
-      params: RequestType<typeof api_archive_enrichment_status_listArchiveJobs>
-    ): Promise<
-      ResponseType<typeof api_archive_enrichment_status_listArchiveJobs>
-    > {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        limit: params.limit === undefined ? undefined : String(params.limit),
-        offset: params.offset === undefined ? undefined : String(params.offset),
-        userId: String(params.userId),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/archive/jobs`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_archive_enrichment_status_listArchiveJobs
-      >;
-    }
-
-    public async uploadArchive(
-      params: RequestType<
-        typeof api_archive_enrichment_upload_archive_uploadArchive
-      >
-    ): Promise<
-      ResponseType<typeof api_archive_enrichment_upload_archive_uploadArchive>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/archive/upload`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_archive_enrichment_upload_archive_uploadArchive
-      >;
-    }
-  }
 }
 
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
 import {
-  login as api_auth_login_login,
-  logout as api_auth_login_logout,
-  validateSession as api_auth_login_validateSession,
+    login as api_auth_login_login,
+    logout as api_auth_login_logout,
+    validateSession as api_auth_login_validateSession
 } from "~backend/auth/login";
 
 export namespace auth {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.login = this.login.bind(this);
-      this.logout = this.logout.bind(this);
-      this.validateSession = this.validateSession.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.login = this.login.bind(this)
+            this.logout = this.logout.bind(this)
+            this.validateSession = this.validateSession.bind(this)
+        }
+
+        /**
+         * Simple login without database for testing
+         */
+        public async login(params: RequestType<typeof api_auth_login_login>): Promise<ResponseType<typeof api_auth_login_login>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/login`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_login_login>
+        }
+
+        /**
+         * Logs out user (simple implementation)
+         */
+        public async logout(params: RequestType<typeof api_auth_login_logout>): Promise<ResponseType<typeof api_auth_login_logout>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/logout`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_login_logout>
+        }
+
+        /**
+         * Validates session token (simple implementation)
+         */
+        public async validateSession(params: RequestType<typeof api_auth_login_validateSession>): Promise<ResponseType<typeof api_auth_login_validateSession>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                sessionToken: params.sessionToken,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/validate`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_login_validateSession>
+        }
     }
-
-    /**
-     * Simple login without database for testing
-     */
-    public async login(
-      params: RequestType<typeof api_auth_login_login>
-    ): Promise<ResponseType<typeof api_auth_login_login>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/login`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_auth_login_login
-      >;
-    }
-
-    /**
-     * Logs out user (simple implementation)
-     */
-    public async logout(
-      params: RequestType<typeof api_auth_login_logout>
-    ): Promise<ResponseType<typeof api_auth_login_logout>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/logout`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_auth_login_logout
-      >;
-    }
-
-    /**
-     * Validates session token (simple implementation)
-     */
-    public async validateSession(
-      params: RequestType<typeof api_auth_login_validateSession>
-    ): Promise<ResponseType<typeof api_auth_login_validateSession>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        sessionToken: params.sessionToken,
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/validate`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_auth_login_validateSession
-      >;
-    }
-  }
 }
 
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
 import {
-  downloadFile as api_download_download_downloadFile,
-  getDownloadInfo as api_download_download_getDownloadInfo,
-  previewResults as api_download_download_previewResults,
+    downloadFile as api_download_download_downloadFile,
+    getDownloadInfo as api_download_download_getDownloadInfo,
+    previewResults as api_download_download_previewResults
 } from "~backend/download/download";
 import { downloadEnrichmentResult as api_download_enrichment_results_downloadEnrichmentResult } from "~backend/download/enrichment_results";
 
 export namespace download {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.downloadEnrichmentResult = this.downloadEnrichmentResult.bind(this);
-      this.downloadFile = this.downloadFile.bind(this);
-      this.getDownloadInfo = this.getDownloadInfo.bind(this);
-      this.previewResults = this.previewResults.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.downloadEnrichmentResult = this.downloadEnrichmentResult.bind(this)
+            this.downloadFile = this.downloadFile.bind(this)
+            this.getDownloadInfo = this.getDownloadInfo.bind(this)
+            this.previewResults = this.previewResults.bind(this)
+        }
+
+        public async downloadEnrichmentResult(params: { jobId: string, fileName: string }): Promise<ResponseType<typeof api_download_enrichment_results_downloadEnrichmentResult>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/download/enrichment_results/${encodeURIComponent(params.jobId)}/${encodeURIComponent(params.fileName)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_download_enrichment_results_downloadEnrichmentResult>
+        }
+
+        /**
+         * Downloads enriched files directly
+         */
+        public async downloadFile(params: RequestType<typeof api_download_download_downloadFile>): Promise<ResponseType<typeof api_download_download_downloadFile>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                format: params.format === undefined ? undefined : String(params.format),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/download/${encodeURIComponent(params.jobId)}`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_download_download_downloadFile>
+        }
+
+        /**
+         * Get download info (filename, size, etc.) without downloading
+         */
+        public async getDownloadInfo(params: RequestType<typeof api_download_download_getDownloadInfo>): Promise<ResponseType<typeof api_download_download_getDownloadInfo>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                format: params.format === undefined ? undefined : String(params.format),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/download-info/${encodeURIComponent(params.jobId)}`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_download_download_getDownloadInfo>
+        }
+
+        /**
+         * Preview enriched data (first few lines)
+         */
+        public async previewResults(params: RequestType<typeof api_download_download_previewResults>): Promise<ResponseType<typeof api_download_download_previewResults>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/preview/${encodeURIComponent(params.jobId)}`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_download_download_previewResults>
+        }
     }
-
-    public async downloadEnrichmentResult(params: {
-      jobId: string;
-      fileName: string;
-    }): Promise<
-      ResponseType<
-        typeof api_download_enrichment_results_downloadEnrichmentResult
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/download/enrichment_results/${encodeURIComponent(
-          params.jobId
-        )}/${encodeURIComponent(params.fileName)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_download_enrichment_results_downloadEnrichmentResult
-      >;
-    }
-
-    /**
-     * Downloads enriched files directly
-     */
-    public async downloadFile(
-      params: RequestType<typeof api_download_download_downloadFile>
-    ): Promise<ResponseType<typeof api_download_download_downloadFile>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        format: params.format === undefined ? undefined : String(params.format),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/download/${encodeURIComponent(params.jobId)}`,
-        { query, method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_download_download_downloadFile
-      >;
-    }
-
-    /**
-     * Get download info (filename, size, etc.) without downloading
-     */
-    public async getDownloadInfo(
-      params: RequestType<typeof api_download_download_getDownloadInfo>
-    ): Promise<ResponseType<typeof api_download_download_getDownloadInfo>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        format: params.format === undefined ? undefined : String(params.format),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/download-info/${encodeURIComponent(params.jobId)}`,
-        { query, method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_download_download_getDownloadInfo
-      >;
-    }
-
-    /**
-     * Preview enriched data (first few lines)
-     */
-    public async previewResults(
-      params: RequestType<typeof api_download_download_previewResults>
-    ): Promise<ResponseType<typeof api_download_download_previewResults>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        limit: params.limit === undefined ? undefined : String(params.limit),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/preview/${encodeURIComponent(params.jobId)}`,
-        { query, method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_download_download_previewResults
-      >;
-    }
-  }
 }
 
 /**
@@ -387,763 +289,442 @@ export namespace download {
  */
 import { processFileInBackground as api_enrichment_background_processor_processFileInBackground } from "~backend/enrichment/background_processor";
 import {
-  createBlacklistFilter as api_enrichment_blacklist_management_createBlacklistFilter,
-  deleteBlacklistFilter as api_enrichment_blacklist_management_deleteBlacklistFilter,
-  getEnrichmentJobStatus as api_enrichment_blacklist_management_getEnrichmentJobStatus,
-  listBlacklistFilters as api_enrichment_blacklist_management_listBlacklistFilters,
-  listEnrichmentJobs as api_enrichment_blacklist_management_listEnrichmentJobs,
-  updateBlacklistFilter as api_enrichment_blacklist_management_updateBlacklistFilter,
+    createBlacklistFilter as api_enrichment_blacklist_management_createBlacklistFilter,
+    deleteBlacklistFilter as api_enrichment_blacklist_management_deleteBlacklistFilter,
+    getEnrichmentJobStatus as api_enrichment_blacklist_management_getEnrichmentJobStatus,
+    listBlacklistFilters as api_enrichment_blacklist_management_listBlacklistFilters,
+    listEnrichmentJobs as api_enrichment_blacklist_management_listEnrichmentJobs,
+    updateBlacklistFilter as api_enrichment_blacklist_management_updateBlacklistFilter
 } from "~backend/enrichment/blacklist_management";
 import {
-  clearBlacklist as api_enrichment_blacklist_mobile_clearBlacklist,
-  getBlacklistCount as api_enrichment_blacklist_mobile_getBlacklistCount,
-  getBlacklistJobStatus as api_enrichment_blacklist_mobile_getBlacklistJobStatus,
-  processBlacklistFile as api_enrichment_blacklist_mobile_processBlacklistFile,
+    clearBlacklist as api_enrichment_blacklist_mobile_clearBlacklist,
+    getBlacklistCount as api_enrichment_blacklist_mobile_getBlacklistCount,
+    getBlacklistJobStatus as api_enrichment_blacklist_mobile_getBlacklistJobStatus,
+    processBlacklistFile as api_enrichment_blacklist_mobile_processBlacklistFile
 } from "~backend/enrichment/blacklist_mobile";
 import { startCompleteEnrichment as api_enrichment_complete_workflow_startCompleteEnrichment } from "~backend/enrichment/complete_workflow";
 import { startImport as api_enrichment_process_startImport } from "~backend/enrichment/process";
 
 export namespace enrichment {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.clearBlacklist = this.clearBlacklist.bind(this);
-      this.createBlacklistFilter = this.createBlacklistFilter.bind(this);
-      this.deleteBlacklistFilter = this.deleteBlacklistFilter.bind(this);
-      this.getBlacklistCount = this.getBlacklistCount.bind(this);
-      this.getBlacklistJobStatus = this.getBlacklistJobStatus.bind(this);
-      this.getEnrichmentJobStatus = this.getEnrichmentJobStatus.bind(this);
-      this.listBlacklistFilters = this.listBlacklistFilters.bind(this);
-      this.listEnrichmentJobs = this.listEnrichmentJobs.bind(this);
-      this.processBlacklistFile = this.processBlacklistFile.bind(this);
-      this.processFileInBackground = this.processFileInBackground.bind(this);
-      this.startCompleteEnrichment = this.startCompleteEnrichment.bind(this);
-      this.startImport = this.startImport.bind(this);
-      this.updateBlacklistFilter = this.updateBlacklistFilter.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.clearBlacklist = this.clearBlacklist.bind(this)
+            this.createBlacklistFilter = this.createBlacklistFilter.bind(this)
+            this.deleteBlacklistFilter = this.deleteBlacklistFilter.bind(this)
+            this.getBlacklistCount = this.getBlacklistCount.bind(this)
+            this.getBlacklistJobStatus = this.getBlacklistJobStatus.bind(this)
+            this.getEnrichmentJobStatus = this.getEnrichmentJobStatus.bind(this)
+            this.listBlacklistFilters = this.listBlacklistFilters.bind(this)
+            this.listEnrichmentJobs = this.listEnrichmentJobs.bind(this)
+            this.processBlacklistFile = this.processBlacklistFile.bind(this)
+            this.processFileInBackground = this.processFileInBackground.bind(this)
+            this.startCompleteEnrichment = this.startCompleteEnrichment.bind(this)
+            this.startImport = this.startImport.bind(this)
+            this.updateBlacklistFilter = this.updateBlacklistFilter.bind(this)
+        }
+
+        public async clearBlacklist(): Promise<ResponseType<typeof api_enrichment_blacklist_mobile_clearBlacklist>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist/clear`, {method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_mobile_clearBlacklist>
+        }
+
+        public async createBlacklistFilter(params: RequestType<typeof api_enrichment_blacklist_management_createBlacklistFilter>): Promise<ResponseType<typeof api_enrichment_blacklist_management_createBlacklistFilter>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist-filters`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_createBlacklistFilter>
+        }
+
+        public async deleteBlacklistFilter(params: { id: number }): Promise<ResponseType<typeof api_enrichment_blacklist_management_deleteBlacklistFilter>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist-filters/${encodeURIComponent(params.id)}`, {method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_deleteBlacklistFilter>
+        }
+
+        public async getBlacklistCount(): Promise<ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistCount>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist/count`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistCount>
+        }
+
+        public async getBlacklistJobStatus(params: { jobId: string }): Promise<ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistJobStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist-jobs/${encodeURIComponent(params.jobId)}/status`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistJobStatus>
+        }
+
+        public async getEnrichmentJobStatus(params: { jobId: string }): Promise<ResponseType<typeof api_enrichment_blacklist_management_getEnrichmentJobStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/jobs/${encodeURIComponent(params.jobId)}/status`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_getEnrichmentJobStatus>
+        }
+
+        public async listBlacklistFilters(): Promise<ResponseType<typeof api_enrichment_blacklist_management_listBlacklistFilters>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist-filters`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_listBlacklistFilters>
+        }
+
+        public async listEnrichmentJobs(): Promise<ResponseType<typeof api_enrichment_blacklist_management_listEnrichmentJobs>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/jobs`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_listEnrichmentJobs>
+        }
+
+        public async processBlacklistFile(params: RequestType<typeof api_enrichment_blacklist_mobile_processBlacklistFile>): Promise<ResponseType<typeof api_enrichment_blacklist_mobile_processBlacklistFile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/process-blacklist`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_mobile_processBlacklistFile>
+        }
+
+        public async processFileInBackground(params: RequestType<typeof api_enrichment_background_processor_processFileInBackground>): Promise<ResponseType<typeof api_enrichment_background_processor_processFileInBackground>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/process-file-background`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_background_processor_processFileInBackground>
+        }
+
+        public async startCompleteEnrichment(params: RequestType<typeof api_enrichment_complete_workflow_startCompleteEnrichment>): Promise<ResponseType<typeof api_enrichment_complete_workflow_startCompleteEnrichment>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/start-complete-workflow`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_complete_workflow_startCompleteEnrichment>
+        }
+
+        public async startImport(params: RequestType<typeof api_enrichment_process_startImport>): Promise<ResponseType<typeof api_enrichment_process_startImport>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/start-import`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_process_startImport>
+        }
+
+        public async updateBlacklistFilter(params: RequestType<typeof api_enrichment_blacklist_management_updateBlacklistFilter>): Promise<ResponseType<typeof api_enrichment_blacklist_management_updateBlacklistFilter>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "filter_type":  params["filter_type"],
+                "filter_value": params["filter_value"],
+                "is_active":    params["is_active"],
+                name:           params.name,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/enrichment/blacklist-filters/${encodeURIComponent(params.id)}`, {method: "PUT", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_enrichment_blacklist_management_updateBlacklistFilter>
+        }
     }
-
-    public async clearBlacklist(): Promise<
-      ResponseType<typeof api_enrichment_blacklist_mobile_clearBlacklist>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist/clear`,
-        { method: "DELETE", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_mobile_clearBlacklist
-      >;
-    }
-
-    public async createBlacklistFilter(
-      params: RequestType<
-        typeof api_enrichment_blacklist_management_createBlacklistFilter
-      >
-    ): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_createBlacklistFilter
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist-filters`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_createBlacklistFilter
-      >;
-    }
-
-    public async deleteBlacklistFilter(params: {
-      id: number;
-    }): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_deleteBlacklistFilter
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist-filters/${encodeURIComponent(params.id)}`,
-        { method: "DELETE", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_deleteBlacklistFilter
-      >;
-    }
-
-    public async getBlacklistCount(): Promise<
-      ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistCount>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist/count`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_mobile_getBlacklistCount
-      >;
-    }
-
-    public async getBlacklistJobStatus(params: {
-      jobId: string;
-    }): Promise<
-      ResponseType<typeof api_enrichment_blacklist_mobile_getBlacklistJobStatus>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist-jobs/${encodeURIComponent(params.jobId)}/status`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_mobile_getBlacklistJobStatus
-      >;
-    }
-
-    public async getEnrichmentJobStatus(params: {
-      jobId: string;
-    }): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_getEnrichmentJobStatus
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/jobs/${encodeURIComponent(params.jobId)}/status`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_getEnrichmentJobStatus
-      >;
-    }
-
-    public async listBlacklistFilters(): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_listBlacklistFilters
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist-filters`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_listBlacklistFilters
-      >;
-    }
-
-    public async listEnrichmentJobs(): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_listEnrichmentJobs
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/enrichment/jobs`, {
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_listEnrichmentJobs
-      >;
-    }
-
-    public async processBlacklistFile(
-      params: RequestType<
-        typeof api_enrichment_blacklist_mobile_processBlacklistFile
-      >
-    ): Promise<
-      ResponseType<typeof api_enrichment_blacklist_mobile_processBlacklistFile>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/process-blacklist`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_mobile_processBlacklistFile
-      >;
-    }
-
-    public async processFileInBackground(
-      params: RequestType<
-        typeof api_enrichment_background_processor_processFileInBackground
-      >
-    ): Promise<
-      ResponseType<
-        typeof api_enrichment_background_processor_processFileInBackground
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/process-file-background`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_background_processor_processFileInBackground
-      >;
-    }
-
-    public async startCompleteEnrichment(
-      params: RequestType<
-        typeof api_enrichment_complete_workflow_startCompleteEnrichment
-      >
-    ): Promise<
-      ResponseType<
-        typeof api_enrichment_complete_workflow_startCompleteEnrichment
-      >
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/start-complete-workflow`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_complete_workflow_startCompleteEnrichment
-      >;
-    }
-
-    public async startImport(
-      params: RequestType<typeof api_enrichment_process_startImport>
-    ): Promise<ResponseType<typeof api_enrichment_process_startImport>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/start-import`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_process_startImport
-      >;
-    }
-
-    public async updateBlacklistFilter(
-      params: RequestType<
-        typeof api_enrichment_blacklist_management_updateBlacklistFilter
-      >
-    ): Promise<
-      ResponseType<
-        typeof api_enrichment_blacklist_management_updateBlacklistFilter
-      >
-    > {
-      // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-      const body: Record<string, any> = {
-        filter_type: params["filter_type"],
-        filter_value: params["filter_value"],
-        is_active: params["is_active"],
-        name: params.name,
-      };
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/enrichment/blacklist-filters/${encodeURIComponent(params.id)}`,
-        { method: "PUT", body: JSON.stringify(body) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_enrichment_blacklist_management_updateBlacklistFilter
-      >;
-    }
-  }
 }
 
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
 import {
-  cancelBackgroundJob as api_ftp_background_jobs_cancelBackgroundJob,
-  createBackgroundJob as api_ftp_background_jobs_createBackgroundJob,
-  getBackgroundJob as api_ftp_background_jobs_getBackgroundJob,
-  listBackgroundJobs as api_ftp_background_jobs_listBackgroundJobs,
-  updateBackgroundJob as api_ftp_background_jobs_updateBackgroundJob,
+    cancelBackgroundJob as api_ftp_background_jobs_cancelBackgroundJob,
+    createBackgroundJob as api_ftp_background_jobs_createBackgroundJob,
+    getBackgroundJob as api_ftp_background_jobs_getBackgroundJob,
+    listBackgroundJobs as api_ftp_background_jobs_listBackgroundJobs,
+    updateBackgroundJob as api_ftp_background_jobs_updateBackgroundJob
 } from "~backend/ftp/background_jobs";
 import {
-  cleanupProcessedFiles as api_ftp_processed_files_cleanupProcessedFiles,
-  getProcessedFile as api_ftp_processed_files_getProcessedFile,
-  listProcessedFiles as api_ftp_processed_files_listProcessedFiles,
-  retryFailedFile as api_ftp_processed_files_retryFailedFile,
+    cleanupProcessedFiles as api_ftp_processed_files_cleanupProcessedFiles,
+    getProcessedFile as api_ftp_processed_files_getProcessedFile,
+    listProcessedFiles as api_ftp_processed_files_listProcessedFiles,
+    retryFailedFile as api_ftp_processed_files_retryFailedFile
 } from "~backend/ftp/processed_files";
 import {
-  getScanLogDetails as api_ftp_scan_logs_getScanLogDetails,
-  getScanLogs as api_ftp_scan_logs_getScanLogs,
+    getScanLogDetails as api_ftp_scan_logs_getScanLogDetails,
+    getScanLogs as api_ftp_scan_logs_getScanLogs
 } from "~backend/ftp/scan_logs";
 import {
-  scanAllFtpServers as api_ftp_scanner_scanAllFtpServers,
-  scanFtpServer as api_ftp_scanner_scanFtpServer,
+    scanAllFtpServers as api_ftp_scanner_scanAllFtpServers,
+    scanFtpServer as api_ftp_scanner_scanFtpServer
 } from "~backend/ftp/scanner";
 import {
-  cleanupFtpServers as api_ftp_servers_cleanupFtpServers,
-  createFtpServer as api_ftp_servers_createFtpServer,
-  deleteFtpServer as api_ftp_servers_deleteFtpServer,
-  getFtpServer as api_ftp_servers_getFtpServer,
-  listFtpServers as api_ftp_servers_listFtpServers,
-  testFtpConnection as api_ftp_servers_testFtpConnection,
-  updateFtpServer as api_ftp_servers_updateFtpServer,
+    cleanupFtpServers as api_ftp_servers_cleanupFtpServers,
+    createFtpServer as api_ftp_servers_createFtpServer,
+    deleteFtpServer as api_ftp_servers_deleteFtpServer,
+    getFtpServer as api_ftp_servers_getFtpServer,
+    listFtpServers as api_ftp_servers_listFtpServers,
+    testFtpConnection as api_ftp_servers_testFtpConnection,
+    updateFtpServer as api_ftp_servers_updateFtpServer
 } from "~backend/ftp/servers";
 
 export namespace ftp {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.cancelBackgroundJob = this.cancelBackgroundJob.bind(this);
-      this.cleanupFtpServers = this.cleanupFtpServers.bind(this);
-      this.cleanupProcessedFiles = this.cleanupProcessedFiles.bind(this);
-      this.createBackgroundJob = this.createBackgroundJob.bind(this);
-      this.createFtpServer = this.createFtpServer.bind(this);
-      this.deleteFtpServer = this.deleteFtpServer.bind(this);
-      this.getBackgroundJob = this.getBackgroundJob.bind(this);
-      this.getFtpServer = this.getFtpServer.bind(this);
-      this.getProcessedFile = this.getProcessedFile.bind(this);
-      this.getScanLogDetails = this.getScanLogDetails.bind(this);
-      this.getScanLogs = this.getScanLogs.bind(this);
-      this.listBackgroundJobs = this.listBackgroundJobs.bind(this);
-      this.listFtpServers = this.listFtpServers.bind(this);
-      this.listProcessedFiles = this.listProcessedFiles.bind(this);
-      this.retryFailedFile = this.retryFailedFile.bind(this);
-      this.scanAllFtpServers = this.scanAllFtpServers.bind(this);
-      this.scanFtpServer = this.scanFtpServer.bind(this);
-      this.testFtpConnection = this.testFtpConnection.bind(this);
-      this.updateBackgroundJob = this.updateBackgroundJob.bind(this);
-      this.updateFtpServer = this.updateFtpServer.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.cancelBackgroundJob = this.cancelBackgroundJob.bind(this)
+            this.cleanupFtpServers = this.cleanupFtpServers.bind(this)
+            this.cleanupProcessedFiles = this.cleanupProcessedFiles.bind(this)
+            this.createBackgroundJob = this.createBackgroundJob.bind(this)
+            this.createFtpServer = this.createFtpServer.bind(this)
+            this.deleteFtpServer = this.deleteFtpServer.bind(this)
+            this.getBackgroundJob = this.getBackgroundJob.bind(this)
+            this.getFtpServer = this.getFtpServer.bind(this)
+            this.getProcessedFile = this.getProcessedFile.bind(this)
+            this.getScanLogDetails = this.getScanLogDetails.bind(this)
+            this.getScanLogs = this.getScanLogs.bind(this)
+            this.listBackgroundJobs = this.listBackgroundJobs.bind(this)
+            this.listFtpServers = this.listFtpServers.bind(this)
+            this.listProcessedFiles = this.listProcessedFiles.bind(this)
+            this.retryFailedFile = this.retryFailedFile.bind(this)
+            this.scanAllFtpServers = this.scanAllFtpServers.bind(this)
+            this.scanFtpServer = this.scanFtpServer.bind(this)
+            this.testFtpConnection = this.testFtpConnection.bind(this)
+            this.updateBackgroundJob = this.updateBackgroundJob.bind(this)
+            this.updateFtpServer = this.updateFtpServer.bind(this)
+        }
+
+        public async cancelBackgroundJob(params: { id: string }): Promise<ResponseType<typeof api_ftp_background_jobs_cancelBackgroundJob>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs/${encodeURIComponent(params.id)}/cancel`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_background_jobs_cancelBackgroundJob>
+        }
+
+        public async cleanupFtpServers(): Promise<ResponseType<typeof api_ftp_servers_cleanupFtpServers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers/cleanup`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_cleanupFtpServers>
+        }
+
+        public async cleanupProcessedFiles(params: RequestType<typeof api_ftp_processed_files_cleanupProcessedFiles>): Promise<ResponseType<typeof api_ftp_processed_files_cleanupProcessedFiles>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                olderThanDays: String(params.olderThanDays),
+                serverId:      params.serverId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/processed-files/cleanup`, {query, method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_processed_files_cleanupProcessedFiles>
+        }
+
+        public async createBackgroundJob(params: RequestType<typeof api_ftp_background_jobs_createBackgroundJob>): Promise<ResponseType<typeof api_ftp_background_jobs_createBackgroundJob>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_background_jobs_createBackgroundJob>
+        }
+
+        public async createFtpServer(params: RequestType<typeof api_ftp_servers_createFtpServer>): Promise<ResponseType<typeof api_ftp_servers_createFtpServer>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_createFtpServer>
+        }
+
+        public async deleteFtpServer(params: { id: string }): Promise<ResponseType<typeof api_ftp_servers_deleteFtpServer>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers/${encodeURIComponent(params.id)}`, {method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_deleteFtpServer>
+        }
+
+        public async getBackgroundJob(params: { id: string }): Promise<ResponseType<typeof api_ftp_background_jobs_getBackgroundJob>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs/${encodeURIComponent(params.id)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_background_jobs_getBackgroundJob>
+        }
+
+        public async getFtpServer(params: { id: string }): Promise<ResponseType<typeof api_ftp_servers_getFtpServer>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers/${encodeURIComponent(params.id)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_getFtpServer>
+        }
+
+        public async getProcessedFile(params: { id: string }): Promise<ResponseType<typeof api_ftp_processed_files_getProcessedFile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/processed-files/${encodeURIComponent(params.id)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_processed_files_getProcessedFile>
+        }
+
+        public async getScanLogDetails(params: { logId: string }): Promise<ResponseType<typeof api_ftp_scan_logs_getScanLogDetails>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/scan-logs/${encodeURIComponent(params.logId)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_scan_logs_getScanLogDetails>
+        }
+
+        public async getScanLogs(): Promise<ResponseType<typeof api_ftp_scan_logs_getScanLogs>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/scan-logs`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_scan_logs_getScanLogs>
+        }
+
+        public async listBackgroundJobs(params: RequestType<typeof api_ftp_background_jobs_listBackgroundJobs>): Promise<ResponseType<typeof api_ftp_background_jobs_listBackgroundJobs>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                status: params.status,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_background_jobs_listBackgroundJobs>
+        }
+
+        public async listFtpServers(): Promise<ResponseType<typeof api_ftp_servers_listFtpServers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_listFtpServers>
+        }
+
+        public async listProcessedFiles(params: RequestType<typeof api_ftp_processed_files_listProcessedFiles>): Promise<ResponseType<typeof api_ftp_processed_files_listProcessedFiles>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:    params.limit === undefined ? undefined : String(params.limit),
+                offset:   params.offset === undefined ? undefined : String(params.offset),
+                serverId: params.serverId,
+                status:   params.status === undefined ? undefined : String(params.status),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/processed-files`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_processed_files_listProcessedFiles>
+        }
+
+        public async retryFailedFile(params: { id: string }): Promise<ResponseType<typeof api_ftp_processed_files_retryFailedFile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/processed-files/${encodeURIComponent(params.id)}/retry`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_processed_files_retryFailedFile>
+        }
+
+        public async scanAllFtpServers(): Promise<ResponseType<typeof api_ftp_scanner_scanAllFtpServers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/scan-all`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_scanner_scanAllFtpServers>
+        }
+
+        public async scanFtpServer(params: { serverId: string }): Promise<ResponseType<typeof api_ftp_scanner_scanFtpServer>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/scan/${encodeURIComponent(params.serverId)}`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_scanner_scanFtpServer>
+        }
+
+        public async testFtpConnection(params: RequestType<typeof api_ftp_servers_testFtpConnection>): Promise<ResponseType<typeof api_ftp_servers_testFtpConnection>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/test-connection`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_testFtpConnection>
+        }
+
+        public async updateBackgroundJob(params: RequestType<typeof api_ftp_background_jobs_updateBackgroundJob>): Promise<ResponseType<typeof api_ftp_background_jobs_updateBackgroundJob>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                completedSteps: params.completedSteps,
+                currentStep:    params.currentStep,
+                error:          params.error,
+                progress:       params.progress,
+                status:         params.status,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs/${encodeURIComponent(params.id)}`, {method: "PUT", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_background_jobs_updateBackgroundJob>
+        }
+
+        public async updateFtpServer(params: RequestType<typeof api_ftp_servers_updateFtpServer>): Promise<ResponseType<typeof api_ftp_servers_updateFtpServer>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                deleteAfterDownload: params.deleteAfterDownload,
+                enabled:             params.enabled,
+                filePattern:         params.filePattern,
+                host:                params.host,
+                name:                params.name,
+                password:            params.password,
+                path:                params.path,
+                pollInterval:        params.pollInterval,
+                port:                params.port,
+                username:            params.username,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/ftp/servers/${encodeURIComponent(params.id)}`, {method: "PUT", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_ftp_servers_updateFtpServer>
+        }
     }
-
-    public async cancelBackgroundJob(params: {
-      id: string;
-    }): Promise<
-      ResponseType<typeof api_ftp_background_jobs_cancelBackgroundJob>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/background-jobs/${encodeURIComponent(params.id)}/cancel`,
-        { method: "POST", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_background_jobs_cancelBackgroundJob
-      >;
-    }
-
-    public async cleanupFtpServers(): Promise<
-      ResponseType<typeof api_ftp_servers_cleanupFtpServers>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/servers/cleanup`, {
-        method: "POST",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_cleanupFtpServers
-      >;
-    }
-
-    public async cleanupProcessedFiles(
-      params: RequestType<typeof api_ftp_processed_files_cleanupProcessedFiles>
-    ): Promise<
-      ResponseType<typeof api_ftp_processed_files_cleanupProcessedFiles>
-    > {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        olderThanDays: String(params.olderThanDays),
-        serverId: params.serverId,
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/processed-files/cleanup`,
-        { query, method: "DELETE", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_processed_files_cleanupProcessedFiles
-      >;
-    }
-
-    public async createBackgroundJob(
-      params: RequestType<typeof api_ftp_background_jobs_createBackgroundJob>
-    ): Promise<
-      ResponseType<typeof api_ftp_background_jobs_createBackgroundJob>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_background_jobs_createBackgroundJob
-      >;
-    }
-
-    public async createFtpServer(
-      params: RequestType<typeof api_ftp_servers_createFtpServer>
-    ): Promise<ResponseType<typeof api_ftp_servers_createFtpServer>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/servers`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_createFtpServer
-      >;
-    }
-
-    public async deleteFtpServer(params: {
-      id: string;
-    }): Promise<ResponseType<typeof api_ftp_servers_deleteFtpServer>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/servers/${encodeURIComponent(params.id)}`,
-        { method: "DELETE", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_deleteFtpServer
-      >;
-    }
-
-    public async getBackgroundJob(params: {
-      id: string;
-    }): Promise<ResponseType<typeof api_ftp_background_jobs_getBackgroundJob>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/background-jobs/${encodeURIComponent(params.id)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_background_jobs_getBackgroundJob
-      >;
-    }
-
-    public async getFtpServer(params: {
-      id: string;
-    }): Promise<ResponseType<typeof api_ftp_servers_getFtpServer>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/servers/${encodeURIComponent(params.id)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_getFtpServer
-      >;
-    }
-
-    public async getProcessedFile(params: {
-      id: string;
-    }): Promise<ResponseType<typeof api_ftp_processed_files_getProcessedFile>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/processed-files/${encodeURIComponent(params.id)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_processed_files_getProcessedFile
-      >;
-    }
-
-    public async getScanLogDetails(params: {
-      logId: string;
-    }): Promise<ResponseType<typeof api_ftp_scan_logs_getScanLogDetails>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/scan-logs/${encodeURIComponent(params.logId)}`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_scan_logs_getScanLogDetails
-      >;
-    }
-
-    public async getScanLogs(): Promise<
-      ResponseType<typeof api_ftp_scan_logs_getScanLogs>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/scan-logs`, {
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_scan_logs_getScanLogs
-      >;
-    }
-
-    public async listBackgroundJobs(
-      params: RequestType<typeof api_ftp_background_jobs_listBackgroundJobs>
-    ): Promise<
-      ResponseType<typeof api_ftp_background_jobs_listBackgroundJobs>
-    > {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        limit: params.limit === undefined ? undefined : String(params.limit),
-        status: params.status,
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/background-jobs`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_background_jobs_listBackgroundJobs
-      >;
-    }
-
-    public async listFtpServers(): Promise<
-      ResponseType<typeof api_ftp_servers_listFtpServers>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/servers`, {
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_listFtpServers
-      >;
-    }
-
-    public async listProcessedFiles(
-      params: RequestType<typeof api_ftp_processed_files_listProcessedFiles>
-    ): Promise<
-      ResponseType<typeof api_ftp_processed_files_listProcessedFiles>
-    > {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        limit: params.limit === undefined ? undefined : String(params.limit),
-        offset: params.offset === undefined ? undefined : String(params.offset),
-        serverId: params.serverId,
-        status: params.status === undefined ? undefined : String(params.status),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/processed-files`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_processed_files_listProcessedFiles
-      >;
-    }
-
-    public async retryFailedFile(params: {
-      id: string;
-    }): Promise<ResponseType<typeof api_ftp_processed_files_retryFailedFile>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/processed-files/${encodeURIComponent(params.id)}/retry`,
-        { method: "POST", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_processed_files_retryFailedFile
-      >;
-    }
-
-    public async scanAllFtpServers(): Promise<
-      ResponseType<typeof api_ftp_scanner_scanAllFtpServers>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/scan-all`, {
-        method: "POST",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_scanner_scanAllFtpServers
-      >;
-    }
-
-    public async scanFtpServer(params: {
-      serverId: string;
-    }): Promise<ResponseType<typeof api_ftp_scanner_scanFtpServer>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/scan/${encodeURIComponent(params.serverId)}`,
-        { method: "POST", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_scanner_scanFtpServer
-      >;
-    }
-
-    public async testFtpConnection(
-      params: RequestType<typeof api_ftp_servers_testFtpConnection>
-    ): Promise<ResponseType<typeof api_ftp_servers_testFtpConnection>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/ftp/test-connection`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_testFtpConnection
-      >;
-    }
-
-    public async updateBackgroundJob(
-      params: RequestType<typeof api_ftp_background_jobs_updateBackgroundJob>
-    ): Promise<
-      ResponseType<typeof api_ftp_background_jobs_updateBackgroundJob>
-    > {
-      // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-      const body: Record<string, any> = {
-        completedSteps: params.completedSteps,
-        currentStep: params.currentStep,
-        error: params.error,
-        progress: params.progress,
-        status: params.status,
-      };
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/background-jobs/${encodeURIComponent(params.id)}`,
-        { method: "PUT", body: JSON.stringify(body) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_background_jobs_updateBackgroundJob
-      >;
-    }
-
-    public async updateFtpServer(
-      params: RequestType<typeof api_ftp_servers_updateFtpServer>
-    ): Promise<ResponseType<typeof api_ftp_servers_updateFtpServer>> {
-      // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-      const body: Record<string, any> = {
-        deleteAfterDownload: params.deleteAfterDownload,
-        enabled: params.enabled,
-        filePattern: params.filePattern,
-        host: params.host,
-        name: params.name,
-        password: params.password,
-        path: params.path,
-        pollInterval: params.pollInterval,
-        port: params.port,
-        username: params.username,
-      };
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/ftp/servers/${encodeURIComponent(params.id)}`,
-        { method: "PUT", body: JSON.stringify(body) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_ftp_servers_updateFtpServer
-      >;
-    }
-  }
 }
 
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
 import {
-  cancelJob as api_history_actions_cancelJob,
-  createJob as api_history_actions_createJob,
-  deleteJob as api_history_actions_deleteJob,
-  updateJobStatus as api_history_actions_updateJobStatus,
+    cancelJob as api_history_actions_cancelJob,
+    createJob as api_history_actions_createJob,
+    deleteJob as api_history_actions_deleteJob,
+    updateJobStatus as api_history_actions_updateJobStatus
 } from "~backend/history/actions";
 import { getHistory as api_history_list_getHistory } from "~backend/history/list";
 
 export namespace history {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.cancelJob = this.cancelJob.bind(this);
-      this.createJob = this.createJob.bind(this);
-      this.deleteJob = this.deleteJob.bind(this);
-      this.getHistory = this.getHistory.bind(this);
-      this.updateJobStatus = this.updateJobStatus.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.cancelJob = this.cancelJob.bind(this)
+            this.createJob = this.createJob.bind(this)
+            this.deleteJob = this.deleteJob.bind(this)
+            this.getHistory = this.getHistory.bind(this)
+            this.updateJobStatus = this.updateJobStatus.bind(this)
+        }
+
+        /**
+         * Cancel a running job
+         */
+        public async cancelJob(params: RequestType<typeof api_history_actions_cancelJob>): Promise<ResponseType<typeof api_history_actions_cancelJob>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/cancel`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_history_actions_cancelJob>
+        }
+
+        /**
+         * Create a new job entry
+         */
+        public async createJob(params: RequestType<typeof api_history_actions_createJob>): Promise<ResponseType<typeof api_history_actions_createJob>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/create`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_history_actions_createJob>
+        }
+
+        /**
+         * Delete a job from history
+         */
+        public async deleteJob(params: RequestType<typeof api_history_actions_deleteJob>): Promise<ResponseType<typeof api_history_actions_deleteJob>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                jobId: params.jobId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/delete`, {query, method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_history_actions_deleteJob>
+        }
+
+        /**
+         * Retrieves job history with optional filtering
+         */
+        public async getHistory(params: RequestType<typeof api_history_list_getHistory>): Promise<ResponseType<typeof api_history_list_getHistory>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/history`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_history_list_getHistory>
+        }
+
+        /**
+         * Update job status
+         */
+        public async updateJobStatus(params: RequestType<typeof api_history_actions_updateJobStatus>): Promise<ResponseType<typeof api_history_actions_updateJobStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/update-status`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_history_actions_updateJobStatus>
+        }
     }
-
-    /**
-     * Cancel a running job
-     */
-    public async cancelJob(
-      params: RequestType<typeof api_history_actions_cancelJob>
-    ): Promise<ResponseType<typeof api_history_actions_cancelJob>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/cancel`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_history_actions_cancelJob
-      >;
-    }
-
-    /**
-     * Create a new job entry
-     */
-    public async createJob(
-      params: RequestType<typeof api_history_actions_createJob>
-    ): Promise<ResponseType<typeof api_history_actions_createJob>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/create`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_history_actions_createJob
-      >;
-    }
-
-    /**
-     * Delete a job from history
-     */
-    public async deleteJob(
-      params: RequestType<typeof api_history_actions_deleteJob>
-    ): Promise<ResponseType<typeof api_history_actions_deleteJob>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        jobId: params.jobId,
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/delete`, {
-        query,
-        method: "DELETE",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_history_actions_deleteJob
-      >;
-    }
-
-    /**
-     * Retrieves job history with optional filtering
-     */
-    public async getHistory(
-      params: RequestType<typeof api_history_list_getHistory>
-    ): Promise<ResponseType<typeof api_history_list_getHistory>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        limit: params.limit === undefined ? undefined : String(params.limit),
-        offset: params.offset === undefined ? undefined : String(params.offset),
-        userId: params.userId,
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/history`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_history_list_getHistory
-      >;
-    }
-
-    /**
-     * Update job status
-     */
-    public async updateJobStatus(
-      params: RequestType<typeof api_history_actions_updateJobStatus>
-    ): Promise<ResponseType<typeof api_history_actions_updateJobStatus>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/update-status`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_history_actions_updateJobStatus
-      >;
-    }
-  }
 }
 
 /**
@@ -1153,49 +734,34 @@ import { sendTestEmail as api_notification_email_sendTestEmail } from "~backend/
 import { sendSimpleEmail as api_notification_simple_email_sendSimpleEmail } from "~backend/notification/simple_email";
 
 export namespace notification {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.sendSimpleEmail = this.sendSimpleEmail.bind(this);
-      this.sendTestEmail = this.sendTestEmail.bind(this);
-    }
+    export class ServiceClient {
+        private baseClient: BaseClient
 
-    /**
-     * Simple email sending service using real SMTP
-     */
-    public async sendSimpleEmail(
-      params: RequestType<typeof api_notification_simple_email_sendSimpleEmail>
-    ): Promise<
-      ResponseType<typeof api_notification_simple_email_sendSimpleEmail>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/send-simple`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_notification_simple_email_sendSimpleEmail
-      >;
-    }
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.sendSimpleEmail = this.sendSimpleEmail.bind(this)
+            this.sendTestEmail = this.sendTestEmail.bind(this)
+        }
 
-    /**
-     * Test email sending
-     */
-    public async sendTestEmail(
-      params: RequestType<typeof api_notification_email_sendTestEmail>
-    ): Promise<ResponseType<typeof api_notification_email_sendTestEmail>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/test-email`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_notification_email_sendTestEmail
-      >;
+        /**
+         * Simple email sending service using real SMTP
+         */
+        public async sendSimpleEmail(params: RequestType<typeof api_notification_simple_email_sendSimpleEmail>): Promise<ResponseType<typeof api_notification_simple_email_sendSimpleEmail>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/send-simple`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_notification_simple_email_sendSimpleEmail>
+        }
+
+        /**
+         * Test email sending
+         */
+        public async sendTestEmail(params: RequestType<typeof api_notification_email_sendTestEmail>): Promise<ResponseType<typeof api_notification_email_sendTestEmail>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/test-email`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_notification_email_sendTestEmail>
+        }
     }
-  }
 }
 
 /**
@@ -1203,300 +769,178 @@ export namespace notification {
  */
 import { analyzeContactCSV as api_settings_contact_mapping_analyzeContactCSV } from "~backend/settings/contact_mapping";
 import {
-  getContactsCount as api_settings_contacts_getContactsCount,
-  uploadContacts as api_settings_contacts_uploadContacts,
-  uploadContactsWithMapping as api_settings_contacts_uploadContactsWithMapping,
+    getContactsCount as api_settings_contacts_getContactsCount,
+    uploadContacts as api_settings_contacts_uploadContacts,
+    uploadContactsWithMapping as api_settings_contacts_uploadContactsWithMapping
 } from "~backend/settings/contacts";
 import {
-  createSource as api_settings_settings_createSource,
-  createSourceConfiguration as api_settings_settings_createSourceConfiguration,
-  deleteSource as api_settings_settings_deleteSource,
-  getSettings as api_settings_settings_getSettings,
-  initializeSettings as api_settings_settings_initializeSettings,
-  listSources as api_settings_settings_listSources,
-  previewEnrichmentSource as api_settings_settings_previewEnrichmentSource,
-  previewSourceFile as api_settings_settings_previewSourceFile,
-  resetSettings as api_settings_settings_resetSettings,
-  setSourceDefaultStatus as api_settings_settings_setSourceDefaultStatus,
-  updateSettings as api_settings_settings_updateSettings,
+    createSource as api_settings_settings_createSource,
+    createSourceConfiguration as api_settings_settings_createSourceConfiguration,
+    deleteSource as api_settings_settings_deleteSource,
+    getSettings as api_settings_settings_getSettings,
+    initializeSettings as api_settings_settings_initializeSettings,
+    listSources as api_settings_settings_listSources,
+    previewEnrichmentSource as api_settings_settings_previewEnrichmentSource,
+    previewSourceFile as api_settings_settings_previewSourceFile,
+    resetSettings as api_settings_settings_resetSettings,
+    setSourceDefaultStatus as api_settings_settings_setSourceDefaultStatus,
+    updateSettings as api_settings_settings_updateSettings
 } from "~backend/settings/settings";
 
 export namespace settings {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.analyzeContactCSV = this.analyzeContactCSV.bind(this);
-      this.createSource = this.createSource.bind(this);
-      this.createSourceConfiguration =
-        this.createSourceConfiguration.bind(this);
-      this.deleteSource = this.deleteSource.bind(this);
-      this.getContactsCount = this.getContactsCount.bind(this);
-      this.getSettings = this.getSettings.bind(this);
-      this.initializeSettings = this.initializeSettings.bind(this);
-      this.listSources = this.listSources.bind(this);
-      this.previewEnrichmentSource = this.previewEnrichmentSource.bind(this);
-      this.previewSourceFile = this.previewSourceFile.bind(this);
-      this.resetSettings = this.resetSettings.bind(this);
-      this.setSourceDefaultStatus = this.setSourceDefaultStatus.bind(this);
-      this.updateSettings = this.updateSettings.bind(this);
-      this.uploadContacts = this.uploadContacts.bind(this);
-      this.uploadContactsWithMapping =
-        this.uploadContactsWithMapping.bind(this);
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.analyzeContactCSV = this.analyzeContactCSV.bind(this)
+            this.createSource = this.createSource.bind(this)
+            this.createSourceConfiguration = this.createSourceConfiguration.bind(this)
+            this.deleteSource = this.deleteSource.bind(this)
+            this.getContactsCount = this.getContactsCount.bind(this)
+            this.getSettings = this.getSettings.bind(this)
+            this.initializeSettings = this.initializeSettings.bind(this)
+            this.listSources = this.listSources.bind(this)
+            this.previewEnrichmentSource = this.previewEnrichmentSource.bind(this)
+            this.previewSourceFile = this.previewSourceFile.bind(this)
+            this.resetSettings = this.resetSettings.bind(this)
+            this.setSourceDefaultStatus = this.setSourceDefaultStatus.bind(this)
+            this.updateSettings = this.updateSettings.bind(this)
+            this.uploadContacts = this.uploadContacts.bind(this)
+            this.uploadContactsWithMapping = this.uploadContactsWithMapping.bind(this)
+        }
+
+        public async analyzeContactCSV(params: RequestType<typeof api_settings_contact_mapping_analyzeContactCSV>): Promise<ResponseType<typeof api_settings_contact_mapping_analyzeContactCSV>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/contacts/analyze-csv`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_contact_mapping_analyzeContactCSV>
+        }
+
+        /**
+         * Create a new enrichment source
+         */
+        public async createSource(params: RequestType<typeof api_settings_settings_createSource>): Promise<ResponseType<typeof api_settings_settings_createSource>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_createSource>
+        }
+
+        /**
+         * Create a new source configuration
+         */
+        public async createSourceConfiguration(params: RequestType<typeof api_settings_settings_createSourceConfiguration>): Promise<ResponseType<typeof api_settings_settings_createSourceConfiguration>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/source-configurations`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_createSourceConfiguration>
+        }
+
+        /**
+         * Delete an enrichment source
+         */
+        public async deleteSource(params: { id: number }): Promise<ResponseType<typeof api_settings_settings_deleteSource>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources/${encodeURIComponent(params.id)}`, {method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_deleteSource>
+        }
+
+        public async getContactsCount(): Promise<ResponseType<typeof api_settings_contacts_getContactsCount>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/contacts/count`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_contacts_getContactsCount>
+        }
+
+        public async getSettings(params: RequestType<typeof api_settings_settings_getSettings>): Promise<ResponseType<typeof api_settings_settings_getSettings>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                section: params.section === undefined ? undefined : String(params.section),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_getSettings>
+        }
+
+        /**
+         * Initialise les paramètres par défaut si la table est vide
+         */
+        public async initializeSettings(): Promise<ResponseType<typeof api_settings_settings_initializeSettings>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/initialize`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_initializeSettings>
+        }
+
+        /**
+         * List all enrichment sources
+         */
+        public async listSources(): Promise<ResponseType<typeof api_settings_settings_listSources>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_listSources>
+        }
+
+        /**
+         * Preview an enrichment source file
+         */
+        public async previewEnrichmentSource(params: RequestType<typeof api_settings_settings_previewEnrichmentSource>): Promise<ResponseType<typeof api_settings_settings_previewEnrichmentSource>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources/preview`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_previewEnrichmentSource>
+        }
+
+        public async previewSourceFile(params: { id: number }): Promise<ResponseType<typeof api_settings_settings_previewSourceFile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources/${encodeURIComponent(params.id)}/preview`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_previewSourceFile>
+        }
+
+        /**
+         * Remet les paramètres par défaut
+         */
+        public async resetSettings(params: RequestType<typeof api_settings_settings_resetSettings>): Promise<ResponseType<typeof api_settings_settings_resetSettings>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/reset`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_resetSettings>
+        }
+
+        public async setSourceDefaultStatus(params: RequestType<typeof api_settings_settings_setSourceDefaultStatus>): Promise<ResponseType<typeof api_settings_settings_setSourceDefaultStatus>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                isDefault: params.isDefault,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/enrichment-sources/${encodeURIComponent(params.id)}/default`, {method: "PUT", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_setSourceDefaultStatus>
+        }
+
+        /**
+         * Met à jour les paramètres de l'application
+         */
+        public async updateSettings(params: RequestType<typeof api_settings_settings_updateSettings>): Promise<ResponseType<typeof api_settings_settings_updateSettings>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings`, {method: "PUT", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_settings_updateSettings>
+        }
+
+        /**
+         * Endpoint original (legacy)
+         */
+        public async uploadContacts(params: RequestType<typeof api_settings_contacts_uploadContacts>): Promise<ResponseType<typeof api_settings_contacts_uploadContacts>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/contacts/upload`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_contacts_uploadContacts>
+        }
+
+        /**
+         * Nouvel endpoint avec mapping
+         */
+        public async uploadContactsWithMapping(params: RequestType<typeof api_settings_contacts_uploadContactsWithMapping>): Promise<ResponseType<typeof api_settings_contacts_uploadContactsWithMapping>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/settings/contacts/upload-with-mapping`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_settings_contacts_uploadContactsWithMapping>
+        }
     }
-
-    public async analyzeContactCSV(
-      params: RequestType<typeof api_settings_contact_mapping_analyzeContactCSV>
-    ): Promise<
-      ResponseType<typeof api_settings_contact_mapping_analyzeContactCSV>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/contacts/analyze-csv`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_contact_mapping_analyzeContactCSV
-      >;
-    }
-
-    /**
-     * Create a new enrichment source
-     */
-    public async createSource(
-      params: RequestType<typeof api_settings_settings_createSource>
-    ): Promise<ResponseType<typeof api_settings_settings_createSource>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_createSource
-      >;
-    }
-
-    /**
-     * Create a new source configuration
-     */
-    public async createSourceConfiguration(
-      params: RequestType<
-        typeof api_settings_settings_createSourceConfiguration
-      >
-    ): Promise<
-      ResponseType<typeof api_settings_settings_createSourceConfiguration>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/source-configurations`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_createSourceConfiguration
-      >;
-    }
-
-    /**
-     * Delete an enrichment source
-     */
-    public async deleteSource(params: {
-      id: number;
-    }): Promise<ResponseType<typeof api_settings_settings_deleteSource>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources/${encodeURIComponent(params.id)}`,
-        { method: "DELETE", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_deleteSource
-      >;
-    }
-
-    public async getContactsCount(): Promise<
-      ResponseType<typeof api_settings_contacts_getContactsCount>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/contacts/count`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_contacts_getContactsCount
-      >;
-    }
-
-    public async getSettings(
-      params: RequestType<typeof api_settings_settings_getSettings>
-    ): Promise<ResponseType<typeof api_settings_settings_getSettings>> {
-      // Convert our params into the objects we need for the request
-      const query = makeRecord<string, string | string[]>({
-        section:
-          params.section === undefined ? undefined : String(params.section),
-      });
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/settings`, {
-        query,
-        method: "GET",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_getSettings
-      >;
-    }
-
-    /**
-     * Initialise les paramètres par défaut si la table est vide
-     */
-    public async initializeSettings(): Promise<
-      ResponseType<typeof api_settings_settings_initializeSettings>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/settings/initialize`, {
-        method: "POST",
-        body: undefined,
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_initializeSettings
-      >;
-    }
-
-    /**
-     * List all enrichment sources
-     */
-    public async listSources(): Promise<
-      ResponseType<typeof api_settings_settings_listSources>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_listSources
-      >;
-    }
-
-    /**
-     * Preview an enrichment source file
-     */
-    public async previewEnrichmentSource(
-      params: RequestType<typeof api_settings_settings_previewEnrichmentSource>
-    ): Promise<
-      ResponseType<typeof api_settings_settings_previewEnrichmentSource>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources/preview`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_previewEnrichmentSource
-      >;
-    }
-
-    public async previewSourceFile(params: {
-      id: number;
-    }): Promise<ResponseType<typeof api_settings_settings_previewSourceFile>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources/${encodeURIComponent(params.id)}/preview`,
-        { method: "GET", body: undefined }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_previewSourceFile
-      >;
-    }
-
-    /**
-     * Remet les paramètres par défaut
-     */
-    public async resetSettings(
-      params: RequestType<typeof api_settings_settings_resetSettings>
-    ): Promise<ResponseType<typeof api_settings_settings_resetSettings>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/settings/reset`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_resetSettings
-      >;
-    }
-
-    public async setSourceDefaultStatus(
-      params: RequestType<typeof api_settings_settings_setSourceDefaultStatus>
-    ): Promise<
-      ResponseType<typeof api_settings_settings_setSourceDefaultStatus>
-    > {
-      // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-      const body: Record<string, any> = {
-        isDefault: params.isDefault,
-      };
-
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/enrichment-sources/${encodeURIComponent(params.id)}/default`,
-        { method: "PUT", body: JSON.stringify(body) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_setSourceDefaultStatus
-      >;
-    }
-
-    /**
-     * Met à jour les paramètres de l'application
-     */
-    public async updateSettings(
-      params: RequestType<typeof api_settings_settings_updateSettings>
-    ): Promise<ResponseType<typeof api_settings_settings_updateSettings>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/settings`, {
-        method: "PUT",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_settings_updateSettings
-      >;
-    }
-
-    /**
-     * Endpoint original (legacy)
-     */
-    public async uploadContacts(
-      params: RequestType<typeof api_settings_contacts_uploadContacts>
-    ): Promise<ResponseType<typeof api_settings_contacts_uploadContacts>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/contacts/upload`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_contacts_uploadContacts
-      >;
-    }
-
-    /**
-     * Nouvel endpoint avec mapping
-     */
-    public async uploadContactsWithMapping(
-      params: RequestType<
-        typeof api_settings_contacts_uploadContactsWithMapping
-      >
-    ): Promise<
-      ResponseType<typeof api_settings_contacts_uploadContactsWithMapping>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(
-        `/settings/contacts/upload-with-mapping`,
-        { method: "POST", body: JSON.stringify(params) }
-      );
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_settings_contacts_uploadContactsWithMapping
-      >;
-    }
-  }
 }
 
 /**
@@ -1506,57 +950,39 @@ import { analyzeCSV as api_upload_mapping_analyzeCSV } from "~backend/upload/map
 import { uploadWithMapping as api_upload_upload_with_mapping_uploadWithMapping } from "~backend/upload/upload_with_mapping";
 
 export namespace upload {
-  export class ServiceClient {
-    private baseClient: BaseClient;
 
-    constructor(baseClient: BaseClient) {
-      this.baseClient = baseClient;
-      this.analyzeCSV = this.analyzeCSV.bind(this);
-      this.uploadFiles = this.uploadFiles.bind(this);
-      this.uploadWithMapping = this.uploadWithMapping.bind(this);
-    }
+    export class ServiceClient {
+        private baseClient: BaseClient
 
-    public async analyzeCSV(
-      params: RequestType<typeof api_upload_mapping_analyzeCSV>
-    ): Promise<ResponseType<typeof api_upload_mapping_analyzeCSV>> {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/upload/analyze-csv`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_upload_mapping_analyzeCSV
-      >;
-    }
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.analyzeCSV = this.analyzeCSV.bind(this)
+            this.uploadFiles = this.uploadFiles.bind(this)
+            this.uploadWithMapping = this.uploadWithMapping.bind(this)
+        }
 
-    /**
-     * Uploads a file for processing
-     */
-    public async uploadFiles(
-      options: PickMethods<"POST"> = {}
-    ): Promise<globalThis.Response> {
-      options.method ||= "POST";
-      return this.baseClient.callAPI(`/upload`, options);
-    }
+        public async analyzeCSV(params: RequestType<typeof api_upload_mapping_analyzeCSV>): Promise<ResponseType<typeof api_upload_mapping_analyzeCSV>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/upload/analyze-csv`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_upload_mapping_analyzeCSV>
+        }
 
-    public async uploadWithMapping(
-      params: RequestType<
-        typeof api_upload_upload_with_mapping_uploadWithMapping
-      >
-    ): Promise<
-      ResponseType<typeof api_upload_upload_with_mapping_uploadWithMapping>
-    > {
-      // Now make the actual call to the API
-      const resp = await this.baseClient.callTypedAPI(`/upload/with-mapping`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      });
-      return JSON.parse(await resp.text(), dateReviver) as ResponseType<
-        typeof api_upload_upload_with_mapping_uploadWithMapping
-      >;
+        /**
+         * Uploads a file for processing
+         */
+        public async uploadFiles(options: PickMethods<"POST"> = {}): Promise<globalThis.Response> {
+            options.method ||= "POST";
+            return this.baseClient.callAPI(`/upload`, options)
+        }
+
+        public async uploadWithMapping(params: RequestType<typeof api_upload_upload_with_mapping_uploadWithMapping>): Promise<ResponseType<typeof api_upload_upload_with_mapping_uploadWithMapping>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/upload/with-mapping`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_upload_upload_with_mapping_uploadWithMapping>
+        }
     }
-  }
 }
+
 
 type PickMethods<Type> = Omit<CallParameters, "method"> & { method?: Type };
 
@@ -1566,11 +992,11 @@ type OmitCookie<T> = {
 };
 
 type RequestType<Type extends (...args: any[]) => any> =
-  Parameters<Type> extends [infer H, ...any[]] ? OmitCookie<H> : void;
+  Parameters<Type> extends [infer H, ...any[]]
+    ? OmitCookie<H>
+    : void;
 
-type ResponseType<Type extends (...args: any[]) => any> = OmitCookie<
-  Awaited<ReturnType<Type>>
->;
+type ResponseType<Type extends (...args: any[]) => any> = OmitCookie<Awaited<ReturnType<Type>>>;
 
 function dateReviver(key: string, value: any): any {
   if (
@@ -1587,31 +1013,28 @@ function dateReviver(key: string, value: any): any {
   return value;
 }
 
+
 function encodeQuery(parts: Record<string, string | string[]>): string {
-  const pairs: string[] = [];
-  for (const key in parts) {
-    const val = (
-      Array.isArray(parts[key]) ? parts[key] : [parts[key]]
-    ) as string[];
-    for (const v of val) {
-      pairs.push(`${key}=${encodeURIComponent(v)}`);
+    const pairs: string[] = []
+    for (const key in parts) {
+        const val = (Array.isArray(parts[key]) ?  parts[key] : [parts[key]]) as string[]
+        for (const v of val) {
+            pairs.push(`${key}=${encodeURIComponent(v)}`)
+        }
     }
-  }
-  return pairs.join("&");
+    return pairs.join("&")
 }
 
 // makeRecord takes a record and strips any undefined values from it,
 // and returns the same record with a narrower type.
 // @ts-ignore - TS ignore because makeRecord is not always used
-function makeRecord<K extends string | number | symbol, V>(
-  record: Record<K, V | undefined>
-): Record<K, V> {
-  for (const key in record) {
-    if (record[key] === undefined) {
-      delete record[key];
+function makeRecord<K extends string | number | symbol, V>(record: Record<K, V | undefined>): Record<K, V> {
+    for (const key in record) {
+        if (record[key] === undefined) {
+            delete record[key]
+        }
     }
-  }
-  return record as Record<K, V>;
+    return record as Record<K, V>
 }
 
 import {
@@ -1634,190 +1057,186 @@ type StreamResponse<Type> = Type extends
   ? Resp
   : never;
 
+
 function encodeWebSocketHeaders(headers: Record<string, string>) {
-  // url safe, no pad
-  const base64encoded = btoa(JSON.stringify(headers))
-    .replaceAll("=", "")
-    .replaceAll("+", "-")
-    .replaceAll("/", "_");
-  return "encore.dev.headers." + base64encoded;
+    // url safe, no pad
+    const base64encoded = btoa(JSON.stringify(headers))
+      .replaceAll("=", "")
+      .replaceAll("+", "-")
+      .replaceAll("/", "_");
+    return "encore.dev.headers." + base64encoded;
 }
 
 class WebSocketConnection {
-  public ws: WebSocket;
+    public ws: WebSocket;
 
-  private hasUpdateHandlers: (() => void)[] = [];
+    private hasUpdateHandlers: (() => void)[] = [];
 
-  constructor(url: string, headers?: Record<string, string>) {
-    let protocols = ["encore-ws"];
-    if (headers) {
-      protocols.push(encodeWebSocketHeaders(headers));
+    constructor(url: string, headers?: Record<string, string>) {
+        let protocols = ["encore-ws"];
+        if (headers) {
+            protocols.push(encodeWebSocketHeaders(headers))
+        }
+
+        this.ws = new WebSocket(url, protocols)
+
+        this.on("error", () => {
+            this.resolveHasUpdateHandlers();
+        });
+
+        this.on("close", () => {
+            this.resolveHasUpdateHandlers();
+        });
     }
 
-    this.ws = new WebSocket(url, protocols);
+    resolveHasUpdateHandlers() {
+        const handlers = this.hasUpdateHandlers;
+        this.hasUpdateHandlers = [];
 
-    this.on("error", () => {
-      this.resolveHasUpdateHandlers();
-    });
-
-    this.on("close", () => {
-      this.resolveHasUpdateHandlers();
-    });
-  }
-
-  resolveHasUpdateHandlers() {
-    const handlers = this.hasUpdateHandlers;
-    this.hasUpdateHandlers = [];
-
-    for (const handler of handlers) {
-      handler();
+        for (const handler of handlers) {
+            handler()
+        }
     }
-  }
 
-  async hasUpdate() {
-    // await until a new message have been received, or the socket is closed
-    await new Promise((resolve) => {
-      this.hasUpdateHandlers.push(() => resolve(null));
-    });
-  }
+    async hasUpdate() {
+        // await until a new message have been received, or the socket is closed
+        await new Promise((resolve) => {
+            this.hasUpdateHandlers.push(() => resolve(null))
+        });
+    }
 
-  on(
-    type: "error" | "close" | "message" | "open",
-    handler: (event: any) => void
-  ) {
-    this.ws.addEventListener(type, handler);
-  }
+    on(type: "error" | "close" | "message" | "open", handler: (event: any) => void) {
+        this.ws.addEventListener(type, handler);
+    }
 
-  off(
-    type: "error" | "close" | "message" | "open",
-    handler: (event: any) => void
-  ) {
-    this.ws.removeEventListener(type, handler);
-  }
+    off(type: "error" | "close" | "message" | "open", handler: (event: any) => void) {
+        this.ws.removeEventListener(type, handler);
+    }
 
-  close() {
-    this.ws.close();
-  }
+    close() {
+        this.ws.close();
+    }
 }
 
 export class StreamInOut<Request, Response> {
-  public socket: WebSocketConnection;
-  private buffer: Response[] = [];
+    public socket: WebSocketConnection;
+    private buffer: Response[] = [];
 
-  constructor(url: string, headers?: Record<string, string>) {
-    this.socket = new WebSocketConnection(url, headers);
-    this.socket.on("message", (event: any) => {
-      this.buffer.push(JSON.parse(event.data, dateReviver));
-      this.socket.resolveHasUpdateHandlers();
-    });
-  }
-
-  close() {
-    this.socket.close();
-  }
-
-  async send(msg: Request) {
-    if (this.socket.ws.readyState === WebSocket.CONNECTING) {
-      // await that the socket is opened
-      await new Promise((resolve) => {
-        this.socket.ws.addEventListener("open", resolve, { once: true });
-      });
+    constructor(url: string, headers?: Record<string, string>) {
+        this.socket = new WebSocketConnection(url, headers);
+        this.socket.on("message", (event: any) => {
+            this.buffer.push(JSON.parse(event.data, dateReviver));
+            this.socket.resolveHasUpdateHandlers();
+        });
     }
 
-    return this.socket.ws.send(JSON.stringify(msg));
-  }
-
-  async next(): Promise<Response | undefined> {
-    for await (const next of this) return next;
-    return undefined;
-  }
-
-  async *[Symbol.asyncIterator](): AsyncGenerator<Response, undefined, void> {
-    while (true) {
-      if (this.buffer.length > 0) {
-        yield this.buffer.shift() as Response;
-      } else {
-        if (this.socket.ws.readyState === WebSocket.CLOSED) return;
-        await this.socket.hasUpdate();
-      }
+    close() {
+        this.socket.close();
     }
-  }
+
+    async send(msg: Request) {
+        if (this.socket.ws.readyState === WebSocket.CONNECTING) {
+            // await that the socket is opened
+            await new Promise((resolve) => {
+                this.socket.ws.addEventListener("open", resolve, { once: true });
+            });
+        }
+
+        return this.socket.ws.send(JSON.stringify(msg));
+    }
+
+    async next(): Promise<Response | undefined> {
+        for await (const next of this) return next;
+        return undefined;
+    }
+
+    async *[Symbol.asyncIterator](): AsyncGenerator<Response, undefined, void> {
+        while (true) {
+            if (this.buffer.length > 0) {
+                yield this.buffer.shift() as Response;
+            } else {
+                if (this.socket.ws.readyState === WebSocket.CLOSED) return;
+                await this.socket.hasUpdate();
+            }
+        }
+    }
 }
 
 export class StreamIn<Response> {
-  public socket: WebSocketConnection;
-  private buffer: Response[] = [];
+    public socket: WebSocketConnection;
+    private buffer: Response[] = [];
 
-  constructor(url: string, headers?: Record<string, string>) {
-    this.socket = new WebSocketConnection(url, headers);
-    this.socket.on("message", (event: any) => {
-      this.buffer.push(JSON.parse(event.data, dateReviver));
-      this.socket.resolveHasUpdateHandlers();
-    });
-  }
-
-  close() {
-    this.socket.close();
-  }
-
-  async next(): Promise<Response | undefined> {
-    for await (const next of this) return next;
-    return undefined;
-  }
-
-  async *[Symbol.asyncIterator](): AsyncGenerator<Response, undefined, void> {
-    while (true) {
-      if (this.buffer.length > 0) {
-        yield this.buffer.shift() as Response;
-      } else {
-        if (this.socket.ws.readyState === WebSocket.CLOSED) return;
-        await this.socket.hasUpdate();
-      }
+    constructor(url: string, headers?: Record<string, string>) {
+        this.socket = new WebSocketConnection(url, headers);
+        this.socket.on("message", (event: any) => {
+            this.buffer.push(JSON.parse(event.data, dateReviver));
+            this.socket.resolveHasUpdateHandlers();
+        });
     }
-  }
+
+    close() {
+        this.socket.close();
+    }
+
+    async next(): Promise<Response | undefined> {
+        for await (const next of this) return next;
+        return undefined;
+    }
+
+    async *[Symbol.asyncIterator](): AsyncGenerator<Response, undefined, void> {
+        while (true) {
+            if (this.buffer.length > 0) {
+                yield this.buffer.shift() as Response;
+            } else {
+                if (this.socket.ws.readyState === WebSocket.CLOSED) return;
+                await this.socket.hasUpdate();
+            }
+        }
+    }
 }
 
 export class StreamOut<Request, Response> {
-  public socket: WebSocketConnection;
-  private responseValue: Promise<Response>;
+    public socket: WebSocketConnection;
+    private responseValue: Promise<Response>;
 
-  constructor(url: string, headers?: Record<string, string>) {
-    let responseResolver: (_: any) => void;
-    this.responseValue = new Promise((resolve) => (responseResolver = resolve));
+    constructor(url: string, headers?: Record<string, string>) {
+        let responseResolver: (_: any) => void;
+        this.responseValue = new Promise((resolve) => responseResolver = resolve);
 
-    this.socket = new WebSocketConnection(url, headers);
-    this.socket.on("message", (event: any) => {
-      responseResolver(JSON.parse(event.data, dateReviver));
-    });
-  }
-
-  async response(): Promise<Response> {
-    return this.responseValue;
-  }
-
-  close() {
-    this.socket.close();
-  }
-
-  async send(msg: Request) {
-    if (this.socket.ws.readyState === WebSocket.CONNECTING) {
-      // await that the socket is opened
-      await new Promise((resolve) => {
-        this.socket.ws.addEventListener("open", resolve, { once: true });
-      });
+        this.socket = new WebSocketConnection(url, headers);
+        this.socket.on("message", (event: any) => {
+            responseResolver(JSON.parse(event.data, dateReviver))
+        });
     }
 
-    return this.socket.ws.send(JSON.stringify(msg));
-  }
+    async response(): Promise<Response> {
+        return this.responseValue;
+    }
+
+    close() {
+        this.socket.close();
+    }
+
+    async send(msg: Request) {
+        if (this.socket.ws.readyState === WebSocket.CONNECTING) {
+            // await that the socket is opened
+            await new Promise((resolve) => {
+                this.socket.ws.addEventListener("open", resolve, { once: true });
+            });
+        }
+
+        return this.socket.ws.send(JSON.stringify(msg));
+    }
 }
 // CallParameters is the type of the parameters to a method call, but require headers to be a Record type
 type CallParameters = Omit<RequestInit, "headers"> & {
-  /** Headers to be sent with the request */
-  headers?: Record<string, string>;
+    /** Headers to be sent with the request */
+    headers?: Record<string, string>
 
-  /** Query parameters to be sent with the request */
-  query?: Record<string, string | string[]>;
-};
+    /** Query parameters to be sent with the request */
+    query?: Record<string, string | string[]>
+}
+
 
 // A fetcher is the prototype for the inbuilt Fetch function
 export type Fetcher = typeof fetch;
@@ -1825,464 +1244,436 @@ export type Fetcher = typeof fetch;
 const boundFetch = fetch.bind(this);
 
 class BaseClient {
-  readonly baseURL: string;
-  readonly fetcher: Fetcher;
-  readonly headers: Record<string, string>;
-  readonly requestInit: Omit<RequestInit, "headers"> & {
-    headers?: Record<string, string>;
-  };
+    readonly baseURL: string
+    readonly fetcher: Fetcher
+    readonly headers: Record<string, string>
+    readonly requestInit: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
 
-  constructor(baseURL: string, options: ClientOptions) {
-    this.baseURL = baseURL;
-    this.headers = {};
+    constructor(baseURL: string, options: ClientOptions) {
+        this.baseURL = baseURL
+        this.headers = {}
 
-    // Add User-Agent header if the script is running in the server
-    // because browsers do not allow setting User-Agent headers to requests
-    if (!BROWSER) {
-      this.headers["User-Agent"] = "-Generated-TS-Client (Encore/1.50.0)";
-    }
-
-    this.requestInit = options.requestInit ?? {};
-
-    // Setup what fetch function we'll be using in the base client
-    if (options.fetcher !== undefined) {
-      this.fetcher = options.fetcher;
-    } else {
-      this.fetcher = boundFetch;
-    }
-  }
-
-  async getAuthData(): Promise<CallParameters | undefined> {
-    return undefined;
-  }
-
-  // createStreamInOut sets up a stream to a streaming API endpoint.
-  async createStreamInOut<Request, Response>(
-    path: string,
-    params?: CallParameters
-  ): Promise<StreamInOut<Request, Response>> {
-    let { query, headers } = params ?? {};
-
-    // Fetch auth data if there is any
-    const authData = await this.getAuthData();
-
-    // If we now have authentication data, add it to the request
-    if (authData) {
-      if (authData.query) {
-        query = { ...query, ...authData.query };
-      }
-      if (authData.headers) {
-        headers = { ...headers, ...authData.headers };
-      }
-    }
-
-    const queryString = query ? "?" + encodeQuery(query) : "";
-    return new StreamInOut(this.baseURL + path + queryString, headers);
-  }
-
-  // createStreamIn sets up a stream to a streaming API endpoint.
-  async createStreamIn<Response>(
-    path: string,
-    params?: CallParameters
-  ): Promise<StreamIn<Response>> {
-    let { query, headers } = params ?? {};
-
-    // Fetch auth data if there is any
-    const authData = await this.getAuthData();
-
-    // If we now have authentication data, add it to the request
-    if (authData) {
-      if (authData.query) {
-        query = { ...query, ...authData.query };
-      }
-      if (authData.headers) {
-        headers = { ...headers, ...authData.headers };
-      }
-    }
-
-    const queryString = query ? "?" + encodeQuery(query) : "";
-    return new StreamIn(this.baseURL + path + queryString, headers);
-  }
-
-  // createStreamOut sets up a stream to a streaming API endpoint.
-  async createStreamOut<Request, Response>(
-    path: string,
-    params?: CallParameters
-  ): Promise<StreamOut<Request, Response>> {
-    let { query, headers } = params ?? {};
-
-    // Fetch auth data if there is any
-    const authData = await this.getAuthData();
-
-    // If we now have authentication data, add it to the request
-    if (authData) {
-      if (authData.query) {
-        query = { ...query, ...authData.query };
-      }
-      if (authData.headers) {
-        headers = { ...headers, ...authData.headers };
-      }
-    }
-
-    const queryString = query ? "?" + encodeQuery(query) : "";
-    return new StreamOut(this.baseURL + path + queryString, headers);
-  }
-
-  // callTypedAPI makes an API call, defaulting content type to "application/json"
-  public async callTypedAPI(
-    path: string,
-    params?: CallParameters
-  ): Promise<Response> {
-    return this.callAPI(path, {
-      ...params,
-      headers: { "Content-Type": "application/json", ...params?.headers },
-    });
-  }
-
-  // callAPI is used by each generated API method to actually make the request
-  public async callAPI(
-    path: string,
-    params?: CallParameters
-  ): Promise<Response> {
-    let { query, headers, ...rest } = params ?? {};
-    const init = {
-      ...this.requestInit,
-      ...rest,
-    };
-
-    // Merge our headers with any predefined headers
-    init.headers = { ...this.headers, ...init.headers, ...headers };
-
-    // Fetch auth data if there is any
-    const authData = await this.getAuthData();
-
-    // If we now have authentication data, add it to the request
-    if (authData) {
-      if (authData.query) {
-        query = { ...query, ...authData.query };
-      }
-      if (authData.headers) {
-        init.headers = { ...init.headers, ...authData.headers };
-      }
-    }
-
-    // Make the actual request
-    const queryString = query ? "?" + encodeQuery(query) : "";
-    const response = await this.fetcher(
-      this.baseURL + path + queryString,
-      init
-    );
-
-    // handle any error responses
-    if (!response.ok) {
-      // try and get the error message from the response body
-      let body: APIErrorResponse = {
-        code: ErrCode.Unknown,
-        message: `request failed: status ${response.status}`,
-      };
-
-      // if we can get the structured error we should, otherwise give a best effort
-      try {
-        const text = await response.text();
-
-        try {
-          const jsonBody = JSON.parse(text);
-          if (isAPIErrorResponse(jsonBody)) {
-            body = jsonBody;
-          } else {
-            body.message += ": " + JSON.stringify(jsonBody);
-          }
-        } catch {
-          body.message += ": " + text;
+        // Add User-Agent header if the script is running in the server
+        // because browsers do not allow setting User-Agent headers to requests
+        if (!BROWSER) {
+            this.headers["User-Agent"] = "-Generated-TS-Client (Encore/1.50.0)";
         }
-      } catch (e) {
-        // otherwise we just append the text to the error message
-        body.message += ": " + String(e);
-      }
 
-      throw new APIError(response.status, body);
+        this.requestInit = options.requestInit ?? {};
+
+        // Setup what fetch function we'll be using in the base client
+        if (options.fetcher !== undefined) {
+            this.fetcher = options.fetcher
+        } else {
+            this.fetcher = boundFetch
+        }
     }
 
-    return response;
-  }
+    async getAuthData(): Promise<CallParameters | undefined> {
+        return undefined;
+    }
+
+    // createStreamInOut sets up a stream to a streaming API endpoint.
+    async createStreamInOut<Request, Response>(path: string, params?: CallParameters): Promise<StreamInOut<Request, Response>> {
+        let { query, headers } = params ?? {};
+
+        // Fetch auth data if there is any
+        const authData = await this.getAuthData();
+
+        // If we now have authentication data, add it to the request
+        if (authData) {
+            if (authData.query) {
+                query = {...query, ...authData.query};
+            }
+            if (authData.headers) {
+                headers = {...headers, ...authData.headers};
+            }
+        }
+
+        const queryString = query ? '?' + encodeQuery(query) : ''
+        return new StreamInOut(this.baseURL + path + queryString, headers);
+    }
+
+    // createStreamIn sets up a stream to a streaming API endpoint.
+    async createStreamIn<Response>(path: string, params?: CallParameters): Promise<StreamIn<Response>> {
+        let { query, headers } = params ?? {};
+
+        // Fetch auth data if there is any
+        const authData = await this.getAuthData();
+
+        // If we now have authentication data, add it to the request
+        if (authData) {
+            if (authData.query) {
+                query = {...query, ...authData.query};
+            }
+            if (authData.headers) {
+                headers = {...headers, ...authData.headers};
+            }
+        }
+
+        const queryString = query ? '?' + encodeQuery(query) : ''
+        return new StreamIn(this.baseURL + path + queryString, headers);
+    }
+
+    // createStreamOut sets up a stream to a streaming API endpoint.
+    async createStreamOut<Request, Response>(path: string, params?: CallParameters): Promise<StreamOut<Request, Response>> {
+        let { query, headers } = params ?? {};
+
+        // Fetch auth data if there is any
+        const authData = await this.getAuthData();
+
+        // If we now have authentication data, add it to the request
+        if (authData) {
+            if (authData.query) {
+                query = {...query, ...authData.query};
+            }
+            if (authData.headers) {
+                headers = {...headers, ...authData.headers};
+            }
+        }
+
+        const queryString = query ? '?' + encodeQuery(query) : ''
+        return new StreamOut(this.baseURL + path + queryString, headers);
+    }
+
+    // callTypedAPI makes an API call, defaulting content type to "application/json"
+    public async callTypedAPI(path: string, params?: CallParameters): Promise<Response> {
+        return this.callAPI(path, {
+            ...params,
+            headers: { "Content-Type": "application/json", ...params?.headers }
+        });
+    }
+
+    // callAPI is used by each generated API method to actually make the request
+    public async callAPI(path: string, params?: CallParameters): Promise<Response> {
+        let { query, headers, ...rest } = params ?? {}
+        const init = {
+            ...this.requestInit,
+            ...rest,
+        }
+
+        // Merge our headers with any predefined headers
+        init.headers = {...this.headers, ...init.headers, ...headers}
+
+        // Fetch auth data if there is any
+        const authData = await this.getAuthData();
+
+        // If we now have authentication data, add it to the request
+        if (authData) {
+            if (authData.query) {
+                query = {...query, ...authData.query};
+            }
+            if (authData.headers) {
+                init.headers = {...init.headers, ...authData.headers};
+            }
+        }
+
+        // Make the actual request
+        const queryString = query ? '?' + encodeQuery(query) : ''
+        const response = await this.fetcher(this.baseURL+path+queryString, init)
+
+        // handle any error responses
+        if (!response.ok) {
+            // try and get the error message from the response body
+            let body: APIErrorResponse = { code: ErrCode.Unknown, message: `request failed: status ${response.status}` }
+
+            // if we can get the structured error we should, otherwise give a best effort
+            try {
+                const text = await response.text()
+
+                try {
+                    const jsonBody = JSON.parse(text)
+                    if (isAPIErrorResponse(jsonBody)) {
+                        body = jsonBody
+                    } else {
+                        body.message += ": " + JSON.stringify(jsonBody)
+                    }
+                } catch {
+                    body.message += ": " + text
+                }
+            } catch (e) {
+                // otherwise we just append the text to the error message
+                body.message += ": " + String(e)
+            }
+
+            throw new APIError(response.status, body)
+        }
+
+        return response
+    }
 }
 
 /**
  * APIErrorDetails represents the response from an Encore API in the case of an error
  */
 interface APIErrorResponse {
-  code: ErrCode;
-  message: string;
-  details?: any;
+    code: ErrCode
+    message: string
+    details?: any
 }
 
 function isAPIErrorResponse(err: any): err is APIErrorResponse {
-  return (
-    err !== undefined &&
-    err !== null &&
-    isErrCode(err.code) &&
-    typeof err.message === "string" &&
-    (err.details === undefined ||
-      err.details === null ||
-      typeof err.details === "object")
-  );
+    return (
+        err !== undefined && err !== null &&
+        isErrCode(err.code) &&
+        typeof(err.message) === "string" &&
+        (err.details === undefined || err.details === null || typeof(err.details) === "object")
+    )
 }
 
 function isErrCode(code: any): code is ErrCode {
-  return code !== undefined && Object.values(ErrCode).includes(code);
+    return code !== undefined && Object.values(ErrCode).includes(code)
 }
 
 /**
  * APIError represents a structured error as returned from an Encore application.
  */
 export class APIError extends Error {
-  /**
-   * The HTTP status code associated with the error.
-   */
-  public readonly status: number;
+    /**
+     * The HTTP status code associated with the error.
+     */
+    public readonly status: number
 
-  /**
-   * The Encore error code
-   */
-  public readonly code: ErrCode;
+    /**
+     * The Encore error code
+     */
+    public readonly code: ErrCode
 
-  /**
-   * The error details
-   */
-  public readonly details?: any;
+    /**
+     * The error details
+     */
+    public readonly details?: any
 
-  constructor(status: number, response: APIErrorResponse) {
-    // extending errors causes issues after you construct them, unless you apply the following fixes
-    super(response.message);
+    constructor(status: number, response: APIErrorResponse) {
+        // extending errors causes issues after you construct them, unless you apply the following fixes
+        super(response.message);
 
-    // set error name as constructor name, make it not enumerable to keep native Error behavior
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_in_constructors
-    Object.defineProperty(this, "name", {
-      value: "APIError",
-      enumerable: false,
-      configurable: true,
-    });
+        // set error name as constructor name, make it not enumerable to keep native Error behavior
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_in_constructors
+        Object.defineProperty(this, 'name', {
+            value:        'APIError',
+            enumerable:   false,
+            configurable: true,
+        })
 
-    // fix the prototype chain
-    if ((Object as any).setPrototypeOf == undefined) {
-      (this as any).__proto__ = APIError.prototype;
-    } else {
-      Object.setPrototypeOf(this, APIError.prototype);
+        // fix the prototype chain
+        if ((Object as any).setPrototypeOf == undefined) {
+            (this as any).__proto__ = APIError.prototype
+        } else {
+            Object.setPrototypeOf(this, APIError.prototype);
+        }
+
+        // capture a stack trace
+        if ((Error as any).captureStackTrace !== undefined) {
+            (Error as any).captureStackTrace(this, this.constructor);
+        }
+
+        this.status = status
+        this.code = response.code
+        this.details = response.details
     }
-
-    // capture a stack trace
-    if ((Error as any).captureStackTrace !== undefined) {
-      (Error as any).captureStackTrace(this, this.constructor);
-    }
-
-    this.status = status;
-    this.code = response.code;
-    this.details = response.details;
-  }
 }
 
 /**
  * Typeguard allowing use of an APIError's fields'
  */
 export function isAPIError(err: any): err is APIError {
-  return err instanceof APIError;
+    return err instanceof APIError;
 }
 
 export enum ErrCode {
-  /**
-   * OK indicates the operation was successful.
-   */
-  OK = "ok",
+    /**
+     * OK indicates the operation was successful.
+     */
+    OK = "ok",
 
-  /**
-   * Canceled indicates the operation was canceled (typically by the caller).
-   *
-   * Encore will generate this error code when cancellation is requested.
-   */
-  Canceled = "canceled",
+    /**
+     * Canceled indicates the operation was canceled (typically by the caller).
+     *
+     * Encore will generate this error code when cancellation is requested.
+     */
+    Canceled = "canceled",
 
-  /**
-   * Unknown error. An example of where this error may be returned is
-   * if a Status value received from another address space belongs to
-   * an error-space that is not known in this address space. Also
-   * errors raised by APIs that do not return enough error information
-   * may be converted to this error.
-   *
-   * Encore will generate this error code in the above two mentioned cases.
-   */
-  Unknown = "unknown",
+    /**
+     * Unknown error. An example of where this error may be returned is
+     * if a Status value received from another address space belongs to
+     * an error-space that is not known in this address space. Also
+     * errors raised by APIs that do not return enough error information
+     * may be converted to this error.
+     *
+     * Encore will generate this error code in the above two mentioned cases.
+     */
+    Unknown = "unknown",
 
-  /**
-   * InvalidArgument indicates client specified an invalid argument.
-   * Note that this differs from FailedPrecondition. It indicates arguments
-   * that are problematic regardless of the state of the system
-   * (e.g., a malformed file name).
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  InvalidArgument = "invalid_argument",
+    /**
+     * InvalidArgument indicates client specified an invalid argument.
+     * Note that this differs from FailedPrecondition. It indicates arguments
+     * that are problematic regardless of the state of the system
+     * (e.g., a malformed file name).
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    InvalidArgument = "invalid_argument",
 
-  /**
-   * DeadlineExceeded means operation expired before completion.
-   * For operations that change the state of the system, this error may be
-   * returned even if the operation has completed successfully. For
-   * example, a successful response from a server could have been delayed
-   * long enough for the deadline to expire.
-   *
-   * The gRPC framework will generate this error code when the deadline is
-   * exceeded.
-   */
-  DeadlineExceeded = "deadline_exceeded",
+    /**
+     * DeadlineExceeded means operation expired before completion.
+     * For operations that change the state of the system, this error may be
+     * returned even if the operation has completed successfully. For
+     * example, a successful response from a server could have been delayed
+     * long enough for the deadline to expire.
+     *
+     * The gRPC framework will generate this error code when the deadline is
+     * exceeded.
+     */
+    DeadlineExceeded = "deadline_exceeded",
 
-  /**
-   * NotFound means some requested entity (e.g., file or directory) was
-   * not found.
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  NotFound = "not_found",
+    /**
+     * NotFound means some requested entity (e.g., file or directory) was
+     * not found.
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    NotFound = "not_found",
 
-  /**
-   * AlreadyExists means an attempt to create an entity failed because one
-   * already exists.
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  AlreadyExists = "already_exists",
+    /**
+     * AlreadyExists means an attempt to create an entity failed because one
+     * already exists.
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    AlreadyExists = "already_exists",
 
-  /**
-   * PermissionDenied indicates the caller does not have permission to
-   * execute the specified operation. It must not be used for rejections
-   * caused by exhausting some resource (use ResourceExhausted
-   * instead for those errors). It must not be
-   * used if the caller cannot be identified (use Unauthenticated
-   * instead for those errors).
-   *
-   * This error code will not be generated by the gRPC core framework,
-   * but expect authentication middleware to use it.
-   */
-  PermissionDenied = "permission_denied",
+    /**
+     * PermissionDenied indicates the caller does not have permission to
+     * execute the specified operation. It must not be used for rejections
+     * caused by exhausting some resource (use ResourceExhausted
+     * instead for those errors). It must not be
+     * used if the caller cannot be identified (use Unauthenticated
+     * instead for those errors).
+     *
+     * This error code will not be generated by the gRPC core framework,
+     * but expect authentication middleware to use it.
+     */
+    PermissionDenied = "permission_denied",
 
-  /**
-   * ResourceExhausted indicates some resource has been exhausted, perhaps
-   * a per-user quota, or perhaps the entire file system is out of space.
-   *
-   * This error code will be generated by the gRPC framework in
-   * out-of-memory and server overload situations, or when a message is
-   * larger than the configured maximum size.
-   */
-  ResourceExhausted = "resource_exhausted",
+    /**
+     * ResourceExhausted indicates some resource has been exhausted, perhaps
+     * a per-user quota, or perhaps the entire file system is out of space.
+     *
+     * This error code will be generated by the gRPC framework in
+     * out-of-memory and server overload situations, or when a message is
+     * larger than the configured maximum size.
+     */
+    ResourceExhausted = "resource_exhausted",
 
-  /**
-   * FailedPrecondition indicates operation was rejected because the
-   * system is not in a state required for the operation's execution.
-   * For example, directory to be deleted may be non-empty, an rmdir
-   * operation is applied to a non-directory, etc.
-   *
-   * A litmus test that may help a service implementor in deciding
-   * between FailedPrecondition, Aborted, and Unavailable:
-   *  (a) Use Unavailable if the client can retry just the failing call.
-   *  (b) Use Aborted if the client should retry at a higher-level
-   *      (e.g., restarting a read-modify-write sequence).
-   *  (c) Use FailedPrecondition if the client should not retry until
-   *      the system state has been explicitly fixed. E.g., if an "rmdir"
-   *      fails because the directory is non-empty, FailedPrecondition
-   *      should be returned since the client should not retry unless
-   *      they have first fixed up the directory by deleting files from it.
-   *  (d) Use FailedPrecondition if the client performs conditional
-   *      REST Get/Update/Delete on a resource and the resource on the
-   *      server does not match the condition. E.g., conflicting
-   *      read-modify-write on the same resource.
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  FailedPrecondition = "failed_precondition",
+    /**
+     * FailedPrecondition indicates operation was rejected because the
+     * system is not in a state required for the operation's execution.
+     * For example, directory to be deleted may be non-empty, an rmdir
+     * operation is applied to a non-directory, etc.
+     *
+     * A litmus test that may help a service implementor in deciding
+     * between FailedPrecondition, Aborted, and Unavailable:
+     *  (a) Use Unavailable if the client can retry just the failing call.
+     *  (b) Use Aborted if the client should retry at a higher-level
+     *      (e.g., restarting a read-modify-write sequence).
+     *  (c) Use FailedPrecondition if the client should not retry until
+     *      the system state has been explicitly fixed. E.g., if an "rmdir"
+     *      fails because the directory is non-empty, FailedPrecondition
+     *      should be returned since the client should not retry unless
+     *      they have first fixed up the directory by deleting files from it.
+     *  (d) Use FailedPrecondition if the client performs conditional
+     *      REST Get/Update/Delete on a resource and the resource on the
+     *      server does not match the condition. E.g., conflicting
+     *      read-modify-write on the same resource.
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    FailedPrecondition = "failed_precondition",
 
-  /**
-   * Aborted indicates the operation was aborted, typically due to a
-   * concurrency issue like sequencer check failures, transaction aborts,
-   * etc.
-   *
-   * See litmus test above for deciding between FailedPrecondition,
-   * Aborted, and Unavailable.
-   */
-  Aborted = "aborted",
+    /**
+     * Aborted indicates the operation was aborted, typically due to a
+     * concurrency issue like sequencer check failures, transaction aborts,
+     * etc.
+     *
+     * See litmus test above for deciding between FailedPrecondition,
+     * Aborted, and Unavailable.
+     */
+    Aborted = "aborted",
 
-  /**
-   * OutOfRange means operation was attempted past the valid range.
-   * E.g., seeking or reading past end of file.
-   *
-   * Unlike InvalidArgument, this error indicates a problem that may
-   * be fixed if the system state changes. For example, a 32-bit file
-   * system will generate InvalidArgument if asked to read at an
-   * offset that is not in the range [0,2^32-1], but it will generate
-   * OutOfRange if asked to read from an offset past the current
-   * file size.
-   *
-   * There is a fair bit of overlap between FailedPrecondition and
-   * OutOfRange. We recommend using OutOfRange (the more specific
-   * error) when it applies so that callers who are iterating through
-   * a space can easily look for an OutOfRange error to detect when
-   * they are done.
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  OutOfRange = "out_of_range",
+    /**
+     * OutOfRange means operation was attempted past the valid range.
+     * E.g., seeking or reading past end of file.
+     *
+     * Unlike InvalidArgument, this error indicates a problem that may
+     * be fixed if the system state changes. For example, a 32-bit file
+     * system will generate InvalidArgument if asked to read at an
+     * offset that is not in the range [0,2^32-1], but it will generate
+     * OutOfRange if asked to read from an offset past the current
+     * file size.
+     *
+     * There is a fair bit of overlap between FailedPrecondition and
+     * OutOfRange. We recommend using OutOfRange (the more specific
+     * error) when it applies so that callers who are iterating through
+     * a space can easily look for an OutOfRange error to detect when
+     * they are done.
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    OutOfRange = "out_of_range",
 
-  /**
-   * Unimplemented indicates operation is not implemented or not
-   * supported/enabled in this service.
-   *
-   * This error code will be generated by the gRPC framework. Most
-   * commonly, you will see this error code when a method implementation
-   * is missing on the server. It can also be generated for unknown
-   * compression algorithms or a disagreement as to whether an RPC should
-   * be streaming.
-   */
-  Unimplemented = "unimplemented",
+    /**
+     * Unimplemented indicates operation is not implemented or not
+     * supported/enabled in this service.
+     *
+     * This error code will be generated by the gRPC framework. Most
+     * commonly, you will see this error code when a method implementation
+     * is missing on the server. It can also be generated for unknown
+     * compression algorithms or a disagreement as to whether an RPC should
+     * be streaming.
+     */
+    Unimplemented = "unimplemented",
 
-  /**
-   * Internal errors. Means some invariants expected by underlying
-   * system has been broken. If you see one of these errors,
-   * something is very broken.
-   *
-   * This error code will be generated by the gRPC framework in several
-   * internal error conditions.
-   */
-  Internal = "internal",
+    /**
+     * Internal errors. Means some invariants expected by underlying
+     * system has been broken. If you see one of these errors,
+     * something is very broken.
+     *
+     * This error code will be generated by the gRPC framework in several
+     * internal error conditions.
+     */
+    Internal = "internal",
 
-  /**
-   * Unavailable indicates the service is currently unavailable.
-   * This is a most likely a transient condition and may be corrected
-   * by retrying with a backoff. Note that it is not always safe to retry
-   * non-idempotent operations.
-   *
-   * See litmus test above for deciding between FailedPrecondition,
-   * Aborted, and Unavailable.
-   *
-   * This error code will be generated by the gRPC framework during
-   * abrupt shutdown of a server process or network connection.
-   */
-  Unavailable = "unavailable",
+    /**
+     * Unavailable indicates the service is currently unavailable.
+     * This is a most likely a transient condition and may be corrected
+     * by retrying with a backoff. Note that it is not always safe to retry
+     * non-idempotent operations.
+     *
+     * See litmus test above for deciding between FailedPrecondition,
+     * Aborted, and Unavailable.
+     *
+     * This error code will be generated by the gRPC framework during
+     * abrupt shutdown of a server process or network connection.
+     */
+    Unavailable = "unavailable",
 
-  /**
-   * DataLoss indicates unrecoverable data loss or corruption.
-   *
-   * This error code will not be generated by the gRPC framework.
-   */
-  DataLoss = "data_loss",
+    /**
+     * DataLoss indicates unrecoverable data loss or corruption.
+     *
+     * This error code will not be generated by the gRPC framework.
+     */
+    DataLoss = "data_loss",
 
-  /**
-   * Unauthenticated indicates the request does not have valid
-   * authentication credentials for the operation.
-   *
-   * The gRPC framework will generate this error code when the
-   * authentication metadata is invalid or a Credentials callback fails,
-   * but also expect authentication middleware to generate it.
-   */
-  Unauthenticated = "unauthenticated",
+    /**
+     * Unauthenticated indicates the request does not have valid
+     * authentication credentials for the operation.
+     *
+     * The gRPC framework will generate this error code when the
+     * authentication metadata is invalid or a Credentials callback fails,
+     * but also expect authentication middleware to generate it.
+     */
+    Unauthenticated = "unauthenticated",
 }
 
-export default new Client(import.meta.env.VITE_CLIENT_TARGET, {
-  requestInit: { credentials: "include" },
-});
+export default new Client(import.meta.env.VITE_CLIENT_TARGET, { requestInit: { credentials: "include" } });

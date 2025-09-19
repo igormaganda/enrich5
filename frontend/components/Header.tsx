@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings, Menu, Home } from 'lucide-react';
+import { LogOut, User, Settings, Menu, Home, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import backend from '~backend/client';
 
 interface HeaderProps {
   onNavigateToSettings?: () => void;
   onNavigateToDashboard?: () => void;
-  currentPage?: 'dashboard' | 'settings';
+  onNavigateToEnrichment?: () => void;
+  currentPage?: 'dashboard' | 'settings' | 'enrichment';
 }
 
-export function Header({ onNavigateToSettings, onNavigateToDashboard, currentPage = 'dashboard' }: HeaderProps) {
+export function Header({ onNavigateToSettings, onNavigateToDashboard, onNavigateToEnrichment, currentPage = 'dashboard' }: HeaderProps) {
   const { user, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -85,6 +86,15 @@ export function Header({ onNavigateToSettings, onNavigateToDashboard, currentPag
                   Dashboard
                 </Button>
                 <Button 
+                  variant={currentPage === 'enrichment' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={onNavigateToEnrichment}
+                  className={uiSettings.enableAnimations ? 'transition-all duration-200' : ''}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Enrichissement
+                </Button>
+                <Button 
                   variant={currentPage === 'settings' ? 'default' : 'ghost'} 
                   size="sm"
                   onClick={onNavigateToSettings}
@@ -115,6 +125,10 @@ export function Header({ onNavigateToSettings, onNavigateToDashboard, currentPag
                   <DropdownMenuItem onClick={() => handleNavClick(onNavigateToDashboard || (() => {}))}>
                     <Home className="h-4 w-4 mr-2" />
                     Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleNavClick(onNavigateToEnrichment || (() => {}))}>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Enrichissement
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleNavClick(onNavigateToSettings || (() => {}))}>
                     <Settings className="h-4 w-4 mr-2" />

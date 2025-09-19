@@ -8,13 +8,15 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { Header } from './components/Header';
+import EnrichmentPage from './pages/EnrichmentPage';
 
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const getCurrentPage = (): 'dashboard' | 'settings' => {
+  const getCurrentPage = (): 'dashboard' | 'settings' | 'enrichment' => {
     if (location.pathname === '/settings') return 'settings';
+    if (location.pathname === '/enrichment') return 'enrichment';
     return 'dashboard';
   };
 
@@ -26,6 +28,10 @@ function AppContent() {
     navigate('/dashboard');
   };
 
+  const handleNavigateToEnrichment = () => {
+    navigate('/enrichment');
+  };
+
   return (
     <MaintenanceWrapper>
       <Routes>
@@ -35,9 +41,21 @@ function AppContent() {
             <Header 
               onNavigateToSettings={handleNavigateToSettings}
               onNavigateToDashboard={handleNavigateToDashboard}
+              onNavigateToEnrichment={handleNavigateToEnrichment}
               currentPage={getCurrentPage()}
             />
             <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/enrichment" element={
+          <ProtectedRoute>
+            <Header 
+              onNavigateToSettings={handleNavigateToSettings}
+              onNavigateToDashboard={handleNavigateToDashboard}
+              onNavigateToEnrichment={handleNavigateToEnrichment}
+              currentPage={getCurrentPage()}
+            />
+            <EnrichmentPage />
           </ProtectedRoute>
         } />
         <Route path="/settings" element={
@@ -45,6 +63,7 @@ function AppContent() {
             <Header 
               onNavigateToSettings={handleNavigateToSettings}
               onNavigateToDashboard={handleNavigateToDashboard}
+              onNavigateToEnrichment={handleNavigateToEnrichment}
               currentPage={getCurrentPage()}
             />
             <div className="container mx-auto px-4 py-8">

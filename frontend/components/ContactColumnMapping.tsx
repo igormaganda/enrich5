@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, AlertTriangle, Upload, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, XCircle, AlertTriangle, Upload, Filter } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import backend from '~backend/client';
 import type { 
@@ -14,32 +15,30 @@ import type {
   ContactDatabaseColumn 
 } from '~backend/settings/contact_mapping';
 
-// ... (interface ContactColumnMappingProps)
-
-interface UploadProgress {
-  processed: number;
-  total: number;
-  status: string;
+interface ContactColumnMappingProps {
+  csvContent: string;
+  onMappingComplete: (mappings: ContactColumnMapping[]) => void;
+  onCancel: () => void;
+  onUploadComplete: (result: { success: boolean; totalRows: number; errors?: string[] }) => void;
 }
 
-export default function ContactColumnMapping({
-  csvContent,
-  onMappingComplete,
-  onCancel,
-  onUploadComplete
+export default function ContactColumnMapping({ 
+  csvContent, 
+  onMappingComplete, 
+  onCancel, 
+  onUploadComplete 
 }: ContactColumnMappingProps) {
   const [analysis, setAnalysis] = useState<ContactCSVAnalysisResponse | null>(null);
   const [mappings, setMappings] = useState<ContactColumnMapping[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOnlySupportedFields, setShowOnlySupportedFields] = useState(false);
   const { toast } = useToast();
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
-  const pollingRef = useRef<number | null>(null);
 
   useEffect(() => {
     analyzeCSV();
-  }, [csvContent]);
+  }, [csvContent, showOnlySupportedFields]);
 
   const analyzeCSV = async () => {
     try {
@@ -48,7 +47,8 @@ export default function ContactColumnMapping({
       
       const result = await backend.settings.analyzeContactCSV({
         csvContent,
-        delimiter: ','
+        delimiter: ',',
+        showOnlySupportedFields
       });
       
       setAnalysis(result);
@@ -113,66 +113,47 @@ export default function ContactColumnMapping({
     return { icon: AlertTriangle, color: 'text-yellow-500', label: 'Manuel' };
   };
 
-  const pollJobStatus = (jobId: string) => {
-    pollingRef.current = window.setInterval(async () => {
-      try {
-        const status = await backend.history.getJobStatus({ jobId });
-        setUploadProgress({
-          processed: status.processedRecords,
-          total: status.totalRecords,
-          status: status.status,
-        });
-
-        if (status.status === 'completed' || status.status === 'completed_with_errors') {
-          if (pollingRef.current) clearInterval(pollingRef.current);
-          setUploading(false);
-          toast({
-            title: status.status === 'completed' ? "Upload terminé" : "Upload terminé avec des erreurs",
-            description: `${status.processedRecords} sur ${status.totalRecords} contacts traités`,
-            variant: status.status === 'completed' ? 'default' : 'destructive',
-          });
-          onUploadComplete({ 
-            success: status.status === 'completed',
-            totalRows: status.processedRecords,
-            errors: status.errorMessage?.split('\n') 
-          });
-        }
-      } catch (error) {
-        console.error("Erreur lors du polling du statut du job:", error);
-        if (pollingRef.current) clearInterval(pollingRef.current);
-        setUploading(false);
-      }
-    }, 2000);
-  };
-
   const handleDirectUpload = async () => {
     const mappedColumns = mappings.filter(m => m.dbColumn);
     if (mappedColumns.length === 0) {
       toast({
         title: "Aucune colonne mappée",
-        description: "Veuillez mapper au moins une colonne avant l\'upload",
+        description: "Veuillez mapper au moins une colonne avant l'upload",
         variant: "destructive"
       });
       return;
     }
 
     setUploading(true);
-    setUploadProgress({ processed: 0, total: 1, status: 'starting' }); // Initial state
-
     try {
       const result = await backend.settings.uploadContactsWithMapping({
         csvContent,
         columnMappings: mappedColumns,
-        delimiter: ',',
+        delimiter: ','
       });
 
-      if (result.jobId) {
-        pollJobStatus(result.jobId);
+      onUploadComplete(result);
+      
+      if (result.success) {
+        toast({
+          title: "Upload réussi",
+          description: `${result.totalRows} contacts importés avec succès`,
+        });
+      } else {
+        toast({
+          title: "Upload avec erreurs",
+          description: `${result.totalRows} contacts traités, ${result.errors?.length || 0} erreurs`,
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
-      toast({ title: "Erreur d\'upload", description: error.message, variant: "destructive" });
+      toast({
+        title: "Erreur d'upload",
+        description: error.message || "Une erreur s'est produite lors de l'upload",
+        variant: "destructive",
+      });
+    } finally {
       setUploading(false);
-      setUploadProgress(null);
     }
   };
 
@@ -223,6 +204,23 @@ export default function ContactColumnMapping({
           </p>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="filter-toggle"
+                checked={showOnlySupportedFields}
+                onCheckedChange={setShowOnlySupportedFields}
+              />
+              <Label htmlFor="filter-toggle" className="flex items-center space-x-2">
+                <Filter className="h-4 w-4" />
+                <span>Afficher seulement les champs pris en charge</span>
+              </Label>
+            </div>
+            <Badge variant={showOnlySupportedFields ? "default" : "outline"}>
+              {showOnlySupportedFields ? "Filtré" : "Tous les champs"}
+            </Badge>
+          </div>
+          
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
               <span>{mappedCount} sur {totalCount} colonnes mappées</span>
