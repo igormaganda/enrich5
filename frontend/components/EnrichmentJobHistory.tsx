@@ -9,6 +9,13 @@ import { History, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-reac
 import backend from '~backend/client';
 import type { EnrichmentJob } from '~backend/enrichment/list_jobs';
 
+const HIDDEN_FILE_NAME_PREFIXES = ['blacklist_mobile_'];
+
+const shouldDisplayJob = (job: EnrichmentJob) => {
+  const fileName = job.file_name.toLowerCase();
+  return !HIDDEN_FILE_NAME_PREFIXES.some((prefix) => fileName.startsWith(prefix));
+};
+
 export function EnrichmentJobHistory() {
   const [jobs, setJobs] = useState<EnrichmentJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +67,8 @@ export function EnrichmentJobHistory() {
     }
   };
 
+  const visibleJobs = jobs.filter(shouldDisplayJob);
+
   if (isLoading) {
     return (
       <Card>
@@ -90,7 +99,7 @@ export function EnrichmentJobHistory() {
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </CardTitle>
-        <CardDescription>{jobs.length} enrichissement{jobs.length !== 1 ? 's' : ''} au total</CardDescription>
+        <CardDescription>{visibleJobs.length} enrichissement{visibleJobs.length !== 1 ? 's' : ''} au total</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -104,7 +113,7 @@ export function EnrichmentJobHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jobs.map((job) => (
+            {visibleJobs.map((job) => (
               <TableRow key={job.id}>
                 <TableCell className="font-medium">{job.file_name}</TableCell>
                 <TableCell>
@@ -132,7 +141,7 @@ export function EnrichmentJobHistory() {
             ))}
           </TableBody>
         </Table>
-        {jobs.length === 0 && (
+        {visibleJobs.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <p>Aucun enrichissement effectué</p>
           </div>
