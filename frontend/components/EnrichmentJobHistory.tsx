@@ -1,42 +1,102 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { History, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import backend from '~backend/client';
 import type { EnrichmentJob } from '~backend/enrichment/list_jobs';
 
+const STANDARD_REFRESH_INTERVAL = 30000;
+const LOW_POWER_REFRESH_INTERVAL = 120000;
+
+type LoadHistoryOptions = {
+  silent?: boolean;
+  initial?: boolean;
+};
+
 export function EnrichmentJobHistory() {
   const [jobs, setJobs] = useState<EnrichmentJob[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isManuallyRefreshing, setIsManuallyRefreshing] = useState(false);
+  const [lowPowerMode, setLowPowerMode] = useState(true);
+
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const { toast } = useToast();
 
-  const loadHistory = async () => {
-    setIsLoading(true);
-    try {
-      const response = await backend.enrichment.listEnrichmentJobs({});
-      setJobs(response.jobs);
-    } catch (error) {
-      console.error('Failed to load enrichment history:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger l'historique des enrichissements",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const refreshInterval = lowPowerMode ? LOW_POWER_REFRESH_INTERVAL : STANDARD_REFRESH_INTERVAL;
+  const refreshIntervalSeconds = Math.round(refreshInterval / 1000);
 
   useEffect(() => {
-    loadHistory();
-    const interval = setInterval(loadHistory, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
+
+  const loadHistory = useCallback(async ({ silent = false, initial = false }: LoadHistoryOptions = {}) => {
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    isFetchingRef.current = true;
+
+    if (initial) {
+      if (isMountedRef.current) {
+        setIsInitialLoading(true);
+      }
+    } else if (!silent) {
+      if (isMountedRef.current) {
+        setIsManuallyRefreshing(true);
+      }
+    }
+
+    try {
+      const response = await backend.enrichment.listEnrichmentJobs({});
+      if (isMountedRef.current) {
+        setJobs(response.jobs);
+      }
+    } catch (error) {
+      console.error('Failed to load enrichment history:', error);
+      if (!silent) {
+        toast({
+          title: 'Erreur',
+          description: "Impossible de charger l'historique des enrichissements",
+          variant: 'destructive'
+        });
+      }
+    } finally {
+      if (initial) {
+        if (isMountedRef.current) {
+          setIsInitialLoading(false);
+        }
+      } else if (!silent) {
+        if (isMountedRef.current) {
+          setIsManuallyRefreshing(false);
+        }
+      }
+      isFetchingRef.current = false;
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    loadHistory({ initial: true });
+  }, [loadHistory]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      loadHistory({ silent: true });
+    }, refreshInterval);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [loadHistory, refreshInterval]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -60,7 +120,7 @@ export function EnrichmentJobHistory() {
     }
   };
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <Card>
         <CardHeader>
@@ -81,16 +141,40 @@ export function EnrichmentJobHistory() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center space-x-2">
             <History className="h-5 w-5" />
             <span>Historique des Enrichissements</span>
           </div>
-          <Button variant="outline" size="sm" onClick={loadHistory} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="low-power-mode"
+                checked={lowPowerMode}
+                onCheckedChange={setLowPowerMode}
+                aria-label="Activer le mode basse consommation"
+              />
+              <Label htmlFor="low-power-mode" className="text-sm font-normal text-muted-foreground">
+                Mode basse consommation
+              </Label>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadHistory()}
+              disabled={isInitialLoading || isManuallyRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${isManuallyRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </CardTitle>
-        <CardDescription>{jobs.length} enrichissement{jobs.length !== 1 ? 's' : ''} au total</CardDescription>
+        <CardDescription className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>{jobs.length} enrichissement{jobs.length !== 1 ? 's' : ''} au total</span>
+          <span>
+            Actualisation automatique toutes les {refreshIntervalSeconds} s
+            {lowPowerMode ? ' (mode basse consommation)' : ' (mode standard)'}
+          </span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
